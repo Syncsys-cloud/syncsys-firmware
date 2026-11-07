@@ -134,7 +134,7 @@
 	<div class="main">
 		<div class="main-left" id="mainmenu" style="display:none">
 			<div class="sidenav-header d-flex align-items-center">
-				<a class="brand" href="#">{{ hostname }}</a>
+				<a class="brand" href="/cgi-bin/luci/admin/syncsys/dashboard"><img src="{{ media }}/img/argon.svg" style="height:38px;max-width:180px" alt="SyncSys.cloud"></a>
 				<div class="ml-auto">
 					<!-- Sidenav toggler -->
 					<div class="sidenav-toggler d-none d-xl-block active" data-action="sidenav-unpin"
@@ -154,7 +154,7 @@
 					<div class="container">
 						<div class="flex1">
 							<a class="showSide"></a>
-							<a class="brand" href="#">{{ hostname }}</a>
+							<a class="brand" href="/cgi-bin/luci/admin/syncsys/dashboard"><img src="{{ media }}/img/argon.svg" style="height:38px;max-width:180px" alt="SyncSys.cloud"></a>
 						</div>
 						<div class="status" id="indicators"></div>
 					</div>

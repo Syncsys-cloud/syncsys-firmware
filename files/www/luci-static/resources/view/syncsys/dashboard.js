@@ -262,7 +262,7 @@ return view.extend({
                 self.createCard('🚀', 'إعدادات سريعة', '#a855f7', [
                     self.createQuickButton('📶', 'إعدادات الواي فاي', '/cgi-bin/luci/admin/network/wireless', '#4facfe'),
                     self.createQuickButton('🔄', 'مقوي الإشارة (ريبيتر)', '/cgi-bin/luci/admin/services/travelmate', '#f59e0b'),
-                    self.createQuickButton('🌐', 'دمج الخطوط (Multi-WAN)', '/cgi-bin/luci/admin/network/mwan', '#38ef7d'),
+                    self.createQuickButton('🌐', 'دمج الخطوط (Multi-WAN)', '/cgi-bin/luci/admin/network/mwan3', '#38ef7d'),
                     self.createQuickButton('📊', 'مراقبة استهلاك البيانات', '/cgi-bin/luci/admin/services/nlbwmon', '#f093fb'),
                     self.createQuickButton('🛡️', 'جدار الحماية', '/cgi-bin/luci/admin/network/firewall', '#ef4444'),
                     self.createQuickButton('⚙️', 'إعدادات النظام', '/cgi-bin/luci/admin/system/system', '#94a3b8'),

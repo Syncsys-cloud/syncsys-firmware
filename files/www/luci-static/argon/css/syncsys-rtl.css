@@ -1,71 +1,19 @@
 
-/* ============================================================ */
-/* SyncSys.cloud OS v2.0 - Full RTL Arabic + Luxury Enterprise  */
-/* ============================================================ */
+/* ============================================================== */
+/* SyncSys.cloud OS - RTL Arabic & Luxury Styling (Safe Version)   */
+/* ============================================================== */
 
-/* === GLOBAL RTL FIX === */
-html[lang="ar"], html[dir="rtl"],
-body.lang_ar {
-    direction: rtl !important;
-    text-align: right !important;
-}
-
-/* Force RTL on all pages when Arabic is active */
-.main, .main-right, .main-left, 
+/* Page content RTL */
 .cbi-map, .cbi-section, .cbi-value,
 .cbi-value-title, .cbi-value-field,
 .cbi-value-description, .cbi-tabmenu,
-table, th, td, .tr, .td, .th,
 .panel-title, h2, h3, h4,
-.alert-message, .cbi-map-descr {
+.alert-message, .cbi-map-descr,
+.cbi-section-node, table, th, td, .tr, .td, .th {
     direction: rtl !important;
     text-align: right !important;
 }
 
-/* Sidebar Navigation RTL */
-.main-left {
-    right: 0 !important;
-    left: auto !important;
-    background: linear-gradient(180deg, #0a0e27 0%, #0f172a 100%) !important;
-    border-left: 1px solid rgba(0, 210, 255, 0.1) !important;
-    border-right: none !important;
-}
-
-.main-right {
-    margin-right: 256px !important;
-    margin-left: 0 !important;
-}
-
-@media screen and (max-width: 1152px) {
-    .main-right {
-        margin-right: 0 !important;
-    }
-}
-
-/* Fix menu item text alignment */
-.main-left .nav li a,
-.main-left .nav .slide .menu,
-.main-left .nav .slide .slide-menu li a {
-    text-align: right !important;
-    padding-right: 20px !important;
-    padding-left: 10px !important;
-    direction: rtl !important;
-}
-
-/* Fix menu icons */
-.main-left .nav .slide .menu::before,
-.main-left .nav .slide .slide-menu li a::before {
-    margin-left: 10px !important;
-    margin-right: 0 !important;
-}
-
-/* Fix active menu indicator */
-.main-left .nav .slide .slide-menu .active a::after {
-    right: 0 !important;
-    left: auto !important;
-}
-
-/* Fix form labels */
 .cbi-value-title {
     float: right !important;
     text-align: right !important;
@@ -73,145 +21,41 @@ table, th, td, .tr, .td, .th,
     padding-right: 0 !important;
 }
 
-.cbi-value-field {
-    margin-right: 0 !important;
+h2, h3 {
+    border-right: 4px solid #00d2ff !important;
+    border-left: none !important;
+    padding-right: 12px !important;
+    padding-left: 0 !important;
 }
 
-/* Fix table headers */
-table th, .table .th {
-    text-align: right !important;
-}
-
-/* Fix buttons alignment */
 .cbi-page-actions {
-    text-align: left !important;
     direction: ltr !important;
+    text-align: left !important;
 }
 
-/* Fix breadcrumb */
-#maincontent > .container > header {
-    direction: rtl !important;
-}
-
-/* Fix notification/alert */
-.alert-message {
-    direction: rtl !important;
-    text-align: right !important;
-}
-
-/* Fix dropdown menus */
-.cbi-dropdown > ul.dropdown {
-    text-align: right !important;
-}
-
-/* === SYNCSYS.CLOUD LUXURY ENTERPRISE COLORS === */
+/* Luxury Branding */
 :root {
     --primary: #0088ff !important;
     --dark-primary: #0070e0 !important;
     --accent: #00d2ff !important;
-    --royal-dark: #0a0e27 !important;
-    --royal-sidebar: #0f172a !important;
 }
 
 body {
     font-family: 'Segoe UI', 'Cairo', 'Noto Kufi Arabic', Tahoma, sans-serif !important;
 }
 
-/* Brand text glow */
-.brand .brand-text,
-.sidenav-header .brand-text {
-    font-size: 1.3rem !important;
+.brand-text {
     font-weight: 800 !important;
     background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
 }
 
-/* Login page brand */
-.login-form .brand .brand-text {
-    font-size: 1.8rem !important;
-}
-
-/* Header bar */
-header.bg-primary {
-    background: linear-gradient(90deg, #070b1e 0%, #0f172a 50%, #0a1628 100%) !important;
-    border-bottom: 2px solid rgba(0, 242, 254, 0.5) !important;
-    box-shadow: 0 2px 20px rgba(0, 136, 255, 0.3) !important;
-}
-
-/* Sidebar active menu */
-.main-left .nav .slide .menu.active {
-    background: linear-gradient(90deg, #0052cc 0%, #0088ff 100%) !important;
-    box-shadow: 0 0 15px rgba(0, 136, 255, 0.5) !important;
-    border-radius: 8px !important;
-    margin: 2px 8px !important;
-}
-
-.main-left .nav li a:hover {
-    background: rgba(0, 136, 255, 0.15) !important;
-    border-radius: 6px !important;
-    margin: 1px 8px !important;
-}
-
-/* Primary buttons */
 .cbi-button-apply, .cbi-button-action.important,
-.btn.primary, .cbi-button-save,
-.cbi-button[value="Submit"], .cbi-button[value="Upload"] {
+.btn.primary, .cbi-button-save {
     background: linear-gradient(135deg, #0066eb 0%, #00c6ff 100%) !important;
     border: none !important;
     font-weight: bold !important;
     box-shadow: 0 4px 15px rgba(0, 102, 235, 0.4) !important;
-    border-radius: 6px !important;
-    transition: all 0.3s ease !important;
-}
-
-.cbi-button-apply:hover, .cbi-button-save:hover {
-    box-shadow: 0 6px 25px rgba(0, 102, 235, 0.6) !important;
-    transform: translateY(-1px) !important;
-}
-
-/* Section headers */
-h2, h3 {
-    border-right: 4px solid #00d2ff !important;
-    border-left: none !important;
-    padding-right: 12px !important;
-    border-radius: 0 4px 4px 0 !important;
-}
-
-/* Footer */
-.syncsys-footer {
-    text-align: center !important;
-    padding: 18px 20px !important;
-    margin-top: 30px !important;
-    font-size: 0.85rem !important;
-    color: #64748b !important;
-    border-top: 1px solid rgba(0, 210, 255, 0.15) !important;
-    background: linear-gradient(180deg, transparent 0%, rgba(10, 14, 39, 0.3) 100%) !important;
-    direction: rtl !important;
-}
-
-.syncsys-footer b {
-    color: #00d2ff !important;
-    font-weight: 700 !important;
-}
-
-/* Login page background enhancement */
-.login-page .main-bg {
-    filter: brightness(0.5) !important;
-}
-
-.login-page .login-form {
-    border: 1px solid rgba(0, 210, 255, 0.2) !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 136, 255, 0.1) !important;
-}
-
-/* Progress bars */
-.cbi-progressbar > div {
-    background: linear-gradient(90deg, #0066eb 0%, #00d2ff 100%) !important;
-}
-
-/* Interface badges */
-.ifacebadge {
     border-radius: 6px !important;
 }

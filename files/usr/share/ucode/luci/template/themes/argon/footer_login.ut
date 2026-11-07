@@ -1,10 +1,19 @@
-<footer>
-<div class="syncsys-footer">
-<b>SyncSys.cloud OS</b> &bull;
-الإصدار المؤسسي &bull;
-نظام التشغيل السحابي العربي الأول لإدارة الشبكات &bull;
-&copy; 2026 SyncSys.cloud
+{#
+	Argon Theme Login with SyncSys.cloud Enterprise Footer
+-#}
+
 </div>
+<footer>
+	<div class="login-footer-links" style="direction: rtl; text-align: center;">
+		<span style="color: #00d2ff; font-weight: bold;">SyncSys.cloud OS</span> &bull; 
+		<span>الإصدار المؤسسي المتطور</span>
+	</div>
+	<div style="color: #94a3b8; font-size: 0.85rem; margin-top: 5px; direction: rtl;">
+		جميع الحقوق محفوظة &copy; 2026 SyncSys.cloud
+	</div>
 </footer>
 </div>
 </div>
+{% include('themes/' + theme + '/page_scripts', { is_login: true }) %}
+</body>
+</html>

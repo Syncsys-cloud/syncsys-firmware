@@ -1,9 +1,21 @@
-{% if (theme == 'argon'): %}
-<footer>
-<div class="syncsys-footer">
-<b>SyncSys.cloud OS Enterprise Edition</b> &bull;
-نظام سحابي متطور لإدارة وتوزيع الشبكات &bull;
-جميع الحقوق محفوظة &copy; 2026 <b>SyncSys.cloud</b>
+{#
+	Argon Theme with SyncSys.cloud Enterprise Footer
+-#}
+
+		</div>
+		<footer class="mobile-hide" style="text-wrap: auto">
+			<div class="footer-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5em; direction: rtl; text-align: center; padding: 15px 0;">
+				<div style="color: #00d2ff; font-weight: bold; font-size: 0.95rem;">
+					SyncSys.cloud OS Enterprise Edition &bull; نظام سحابي متطور لإدارة وتوزيع الشبكات
+				</div>
+				<div style="color: #94a3b8; font-size: 0.85rem;">
+					جميع الحقوق محفوظة &copy; 2026 <b>SyncSys.cloud</b>
+				</div>
+				<ul class="breadcrumb pull-right" id="modemenu" style="display:none"></ul>
+			</div>
+		</footer>
+	</div>
 </div>
-</footer>
-{% endif %}
+{% include('themes/' + theme + '/page_scripts', { is_login: false }) %}
+</body>
+</html>

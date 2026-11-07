@@ -7,12 +7,13 @@ on:
       target_device:
         description: 'Select Target Router Device'
         required: true
-        default: 'all'
+        default: 'xiaomi_miwifi_mini'
         type: choice
         options:
-          - 'all'
+          - 'xiaomi_miwifi_mini'
           - 'xiaomi_cr6609'
           - 'qihoo_360t6gs'
+          - 'all'
       ssh:
         description: 'SSH connection to Actions for debugging (true/false)'
         required: false
@@ -33,8 +34,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     strategy:
+      fail-fast: false
       matrix:
-        device: ${{ github.event.inputs.target_device == 'all' && fromJSON('["xiaomi_cr6609", "qihoo_360t6gs"]') || fromJSON(format('["{0}"]', github.event.inputs.target_device)) }}
+        device: ${{ github.event.inputs.target_device == 'all' && fromJSON('["xiaomi_miwifi_mini", "xiaomi_cr6609", "qihoo_360t6gs"]') || fromJSON(format('["{0}"]', github.event.inputs.target_device)) }}
 
     steps:
     - name: Checkout Repository
@@ -75,7 +77,9 @@ jobs:
     - name: Load Device Configuration & Apply Branding (DIY Part 2)
       run: |
         cd openwrt
-        if [ "${{ matrix.device }}" = "xiaomi_cr6609" ]; then
+        if [ "${{ matrix.device }}" = "xiaomi_miwifi_mini" ]; then
+            cp -f $GITHUB_WORKSPACE/config/miwifi_mini.config .config
+        elif [ "${{ matrix.device }}" = "xiaomi_cr6609" ]; then
             cp -f $GITHUB_WORKSPACE/config/cr6609.config .config
         else
             cp -f $GITHUB_WORKSPACE/config/360t6gs.config .config
@@ -120,13 +124,14 @@ jobs:
       id: tag
       if: steps.organize.outputs.status == 'success' && !cancelled()
       run: |
-        echo "release_tag=SyncSys-$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+        echo "release_tag=SyncSys-${{ matrix.device }}-$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
         cd ${{ env.FIRMWARE }}
         sha256sum * > sha256sums.txt
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload Firmware to GitHub Release
       uses: softprops/action-gh-release@v2
+      continue-on-error: true
       if: steps.tag.outputs.status == 'success' && !cancelled()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -137,10 +142,9 @@ jobs:
           Automated compilation for **${{ matrix.device }}**.
           
           ### Device Highlights:
-          - Target Architecture: `MediaTek MT7621`
+          - Target Profile: `${{ matrix.device }}`
           - Operating System: `SyncSys.cloud OS (ImmortalWrt / Linux 6.6)`
           - Default Gateway: `192.168.1.1`
-          - Included Suites: Multi-WAN, WireGuard, SQM, Argon Dark Theme, Arabic UI
+          - Included Suites: Multi-WAN, WireGuard, SQM, Wi-Fi Repeater / Extender, Argon Dark Theme, 100% Arabic UI
         files: |
           ${{ env.FIRMWARE }}/*
-

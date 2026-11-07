@@ -17,19 +17,19 @@
 -#}
 
 		</div>
+	</div>
 		<footer class="mobile-hide" style="text-wrap: auto">
-			<div class="footer-content" style="display: flex; flex-wrap: wrap; gap: 0.5em; justify-content: end;">
-				<div style="width:100%;text-align:center;direction:rtl;margin-bottom:8px;"><b style="color:#00d2ff;font-size:15px;">SyncSys.cloud OS Enterprise Edition</b> &bull; نظام سحابي متطور لإدارة وتوزيع الشبكات &bull; <a class="luci-link" href="https://github.com/openwrt/luci" target="_blank">Powered by {{ version.luciname }} ({{ version.luciversion }})</a>copy; 2026 SyncSys.cloud</div>
-
-				<span class="footer-separator">|</span>
-
-				<a href="https://github.com/jerrykuku/luci-theme-argon" target="_blank">ArgonTheme v2.4.3</a>
-
-				<span class="footer-separator">|</span>
-
-				<a class="luci-link" href="{{ version.disturl }}" target="_blank">{{ version.distname }} {{ version.distversion }}-{{ version.distrevision }}</a>
-
-				<ul class="breadcrumb pull-right" id="modemenu" style="display:none"></ul>
+			<div class="footer-content" style="display: flex; flex-wrap: wrap; gap: 0.5em; justify-content: center; direction: rtl;">
+				<div style="width:100%;text-align:center;margin-bottom:4px;">
+					<b style="color:#00d2ff;font-size:14px;">☁️ SyncSys.cloud OS</b>
+					<span style="color:#64748b;"> • </span>
+					<span style="color:#94a3b8;font-size:12px;">النسخة المؤسسية المتطورة</span>
+				</div>
+				<span style="color:#64748b;font-size:11px;">
+					Powered by {{ version.luciname }} ({{ version.luciversion }}) •
+					{{ version.distname }} {{ version.distversion }}
+					• © 2026 SyncSys.cloud
+				</span>
 			</div>
 		</footer>
 	</div>

@@ -1,61 +1,163 @@
-
 /* ============================================================== */
-/* SyncSys.cloud OS - RTL Arabic & Luxury Styling (Safe Version)   */
+/* SyncSys.cloud OS - RTL Arabic & Luxury Styling v3.0             */
+/* SAFE: Does NOT touch .main-left sidebar positioning             */
 /* ============================================================== */
 
-/* Page content RTL */
-.cbi-map, .cbi-section, .cbi-value,
-.cbi-value-title, .cbi-value-field,
-.cbi-value-description, .cbi-tabmenu,
-.panel-title, h2, h3, h4,
-.alert-message, .cbi-map-descr,
-.cbi-section-node, table, th, td, .tr, .td, .th {
+/* === GLOBAL RTL FOR CONTENT ONLY (not sidebar) === */
+.main-right {
     direction: rtl !important;
     text-align: right !important;
 }
 
-.cbi-value-title {
-    float: right !important;
-    text-align: right !important;
-    padding-left: 10px !important;
-    padding-right: 0 !important;
-}
+/* Content areas RTL */
+.cbi-map,
+.cbi-section,
+.cbi-value,
+.cbi-value-title,
+.cbi-value-field,
+.cbi-value-description,
+.cbi-tabmenu,
 
-h2, h3 {
-    border-right: 4px solid #00d2ff !important;
-    border-left: none !important;
-    padding-right: 12px !important;
-    padding-left: 0 !important;
-}
+    .panel-title,
+    .cbi-map-descr,
+    .cbi-section-node,
+    .alert-message,
+    .alert-message.warning,
+    .alert-message.error,
+    .alert-message.notice,
+    #maincontent,
+    #maincontent .container {
+        direction: rtl !important;
+        text-align: right !important;
+    }
 
-.cbi-page-actions {
-    direction: ltr !important;
-    text-align: left !important;
-}
+    /* Headings RTL accent bar */
+    .main-right h2,
+    .main-right h3 {
+        border-right: 4px solid var(--primary, #00d2ff) !important;
+        border-left: none !important;
+        padding-right: 12px !important;
+        padding-left: 0 !important;
+    }
 
-/* Luxury Branding */
-:root {
-    --primary: #0088ff !important;
-    --dark-primary: #0070e0 !important;
-    --accent: #00d2ff !important;
-}
+    /* Table content RTL */
+    .main-right table,
+    .main-right th,
+    .main-right td,
+    .main-right .tr,
+    .main-right .td,
+    .main-right .th {
+        direction: rtl !important;
+        text-align: right !important;
+    }
 
-body {
-    font-family: 'Segoe UI', 'Cairo', 'Noto Kufi Arabic', Tahoma, sans-serif !important;
-}
+    /* Form labels */
+    .cbi-value-title {
+        float: right !important;
+        text-align: right !important;
+        padding-left: 10px !important;
+        padding-right: 0 !important;
+    }
 
-.brand-text {
-    font-weight: 800 !important;
-    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-}
+    /* Buttons stay LTR aligned */
+    .cbi-page-actions {
+        direction: ltr !important;
+        text-align: left !important;
+    }
 
-.cbi-button-apply, .cbi-button-action.important,
-.btn.primary, .cbi-button-save {
-    background: linear-gradient(135deg, #0066eb 0%, #00c6ff 100%) !important;
-    border: none !important;
-    font-weight: bold !important;
-    box-shadow: 0 4px 15px rgba(0, 102, 235, 0.4) !important;
-    border-radius: 6px !important;
-}
+    /* Tab menu RTL */
+    .cbi-tabmenu>li {
+        float: right !important;
+    }
+
+    /* Breadcrumb RTL */
+    .main-right .breadcrumb {
+        direction: rtl !important;
+    }
+
+    /* === SIDEBAR (KEEP LTR - DON'T BREAK ARGON JS) === */
+    /* Only flip text inside sidebar, not the sidebar container */
+    .main-left .nav-link span,
+    .main-left .sidenav-header .brand {
+        /* Keep sidebar LTR layout, only flip inline text if needed */
+        unicode-bidi: plaintext;
+    }
+
+    /* === LUXURY BRANDING === */
+    :root {
+        --syncsys-primary: #0088ff;
+        --syncsys-accent: #00d2ff;
+        --syncsys-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    }
+
+    body {
+        font-family: 'Segoe UI', 'Cairo', 'Noto Kufi Arabic', Tahoma, sans-serif !important;
+    }
+
+        /* Login page SyncSys branding */
+        .login-form .brand,
+        .login-logo {
+            font-weight: 900 !important;
+        }
+
+        /* Primary buttons with SyncSys gradient */
+        .cbi-button-apply,
+        .cbi-button-action.important,
+        .btn.primary,
+        .cbi-button-save {
+            background: linear-gradient(135deg, #0066eb 0%, #00c6ff 100%) !important;
+            border: none !important;
+            font-weight: bold !important;
+            box-shadow: 0 4px 15px rgba(0, 102, 235, 0.3) !important;
+            border-radius: 6px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .cbi-button-apply:hover,
+        .cbi-button-save:hover {
+            box-shadow: 0 6px 20px rgba(0, 102, 235, 0.5) !important;
+            transform: translateY(-1px) !important;
+        }
+
+        /* Dashboard cards */
+        .syncsys-dashboard .cbi-section {
+            transition: all 0.3s ease !important;
+            border-radius: 12px !important;
+        }
+
+        .syncsys-dashboard .cbi-section:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        /* Progress bars with SyncSys style */
+        .cbi-progressbar>div {
+            border-radius: 4px !important;
+            transition: width 0.6s ease !important;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Footer RTL */
+        footer,
+        footer .footer-content {
+            direction: rtl !important;
+            text-align: center !important;
+        }
+
+        /* === PERFORMANCE: Reduce repaints === */
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Smooth transitions for theme */
+        .main-left,
+        .main-right,
+        .darkMask {
+            transition: none !important;
+            /* Faster sidebar toggle */
+        }

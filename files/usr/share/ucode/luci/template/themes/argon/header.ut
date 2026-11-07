@@ -55,7 +55,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<title>{{ hostname }}{{ node?.title ? ` - ${striptags(node.title)}` : '' }} - LuCI</title>
+	<title>{{ hostname }}{{ node?.title ? ` - ${striptags(node.title)}` : '' }} - SyncSys.cloud</title>
 
 	<!-- SEO and Description -->
 	<meta name="robots" content="noindex, nofollow">
@@ -71,13 +71,13 @@
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta name="apple-mobile-web-app-title" content="{{ hostname }} - LuCI">
+	<meta name="apple-mobile-web-app-title" content="{{ hostname }} - SyncSys.cloud">
 
 	<!-- Theme and Colors -->
 	<meta name="theme-color" content="{{ bar_color }}">
 	<meta name="msapplication-TileColor" content="{{ bar_color }}">
 	<meta name="msapplication-TileImage" content="{{ media }}/icon/ms-icon-144x144.png">
-	<meta name="application-name" content="{{ hostname }} - LuCI">
+	<meta name="application-name" content="{{ hostname }} - SyncSys.cloud">
 
 	<!-- Icons and Manifest -->
 	<link rel="icon" type="image/x-icon" href="{{ media }}/favicon.ico">
@@ -120,6 +120,8 @@
 		{{ css }}
 	</style>
 	{% endif -%}
+	<!-- SyncSys.cloud RTL & Branding CSS -->
+	<link rel="stylesheet" href="/luci-static/argon/css/syncsys-rtl.css">
 	<script src="{{ dispatcher.build_url('admin/translations', dispatcher.lang) }}?v={{ version.luciversion }}"></script>
 	<script src="{{ resource }}/cbi.js?v={{ version.luciversion }}"></script>
 	<script src="{{ resource }}/luci.js?v={{ version.luciversion }}"></script>

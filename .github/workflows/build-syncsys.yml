@@ -143,3 +143,4 @@ jobs:
           - Included Suites: Multi-WAN, WireGuard, SQM, Argon Dark Theme, Arabic UI
         files: |
           ${{ env.FIRMWARE }}/*
+

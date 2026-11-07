@@ -62,3 +62,4 @@ Automated cloud compilation repository for **SyncSys.cloud OS** — high-perform
 2. When completed:
    - Go to the workflow run summary to download the `.bin` file under **Artifacts**.
    - Or download directly from the automated **Releases** tab with checksums included!
+

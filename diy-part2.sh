@@ -97,16 +97,29 @@ sysctl -w net.ipv4.tcp_mtu_probing=1 2>/dev/null
 sysctl -w net.ipv4.tcp_timestamps=1 2>/dev/null
 sysctl -w net.ipv4.tcp_sack=1 2>/dev/null
 
-# Set root password to 'root' by default
-echo -e "root\nroot" | passwd root 2>/dev/null
-
 # Set LuCI to dark mode by default
-if [ -f /etc/config/argon ]; then
-    uci set argon.@global[0].mode='dark'
-    uci commit argon
-fi
+uci -c /etc/config set argon.@global[0].mode='dark' 2>/dev/null || true
+uci -c /etc/config commit argon 2>/dev/null || true
 PERF_EOF
 chmod +x files/etc/uci-defaults/98-syncsys-performance
+
+# 11b. Set root password at BUILD TIME via shadow file overlay
+echo "🔑 Setting root password..."
+ROOT_HASH=$(openssl passwd -1 -salt SyncSys root 2>/dev/null)
+if [ -n "$ROOT_HASH" ]; then
+    mkdir -p files/etc
+    echo "root:${ROOT_HASH}:0:0:99999:7:::" > files/etc/shadow
+    chmod 600 files/etc/shadow
+    echo "✅ Root password 'root' baked into firmware shadow file"
+else
+    # Fallback: set via uci-defaults (runs on first boot)
+    cat > files/etc/uci-defaults/97-syncsys-passwd <<'PASSWD_EOF'
+#!/bin/sh
+(echo "root"; echo "root") | passwd root
+PASSWD_EOF
+    chmod +x files/etc/uci-defaults/97-syncsys-passwd
+    echo "⚠️ Root password will be set on first boot via uci-defaults"
+fi
 
 # 12. Performance: Persistent sysctl
 mkdir -p files/etc/sysctl.d

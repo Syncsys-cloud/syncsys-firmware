@@ -77,7 +77,7 @@ return view.extend({
             'style': 'display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);'
         }, [
             E('span', { 'style': 'color: #94a3b8;' }, label),
-            E('span', { 'style': 'font-weight: 600; color: ' + (valueColor || '#e2e8f0') + ';' }, value)
+            E('span', { 'style': 'font-weight: 600; color: ' + (valueColor || '#e2e8f0') + '; direction: ltr; unicode-bidi: isolate; display: inline-block;' }, value)
         ]);
     },
 
@@ -186,7 +186,7 @@ return view.extend({
                     'style': 'background: rgba(0,210,255,0.08); border-radius: 10px; padding: 14px; text-align: center;'
                 }, [
                     E('div', { 'style': 'font-size: 1.5rem;' }, '⏱'),
-                    E('div', { 'style': 'color: #00d2ff; font-weight: 700; font-size: 1.1rem;' },
+                    E('div', { 'style': 'color: #00d2ff; font-weight: 700; font-size: 1.1rem; direction: ltr; unicode-bidi: isolate;' },
                         self.formatUptime(sysinfo.uptime)),
                     E('div', { 'style': 'color: #64748b; font-size: 0.75rem;' }, 'وقت التشغيل')
                 ]),
@@ -195,7 +195,7 @@ return view.extend({
                     'style': 'background: rgba(56,239,125,0.08); border-radius: 10px; padding: 14px; text-align: center;'
                 }, [
                     E('div', { 'style': 'font-size: 1.5rem;' }, '⚡'),
-                    E('div', { 'style': 'color: #38ef7d; font-weight: 700; font-size: 1.1rem;' }, loadAvg),
+                    E('div', { 'style': 'color: #38ef7d; font-weight: 700; font-size: 1.1rem; direction: ltr; unicode-bidi: isolate;' }, loadAvg),
                     E('div', { 'style': 'color: #64748b; font-size: 0.75rem;' }, 'حمل المعالج')
                 ]),
                 // Memory mini card
@@ -203,7 +203,7 @@ return view.extend({
                     'style': 'background: rgba(79,172,254,0.08); border-radius: 10px; padding: 14px; text-align: center;'
                 }, [
                     E('div', { 'style': 'font-size: 1.5rem;' }, '🧠'),
-                    E('div', { 'style': 'color: #4facfe; font-weight: 700; font-size: 1.1rem;' }, memPercent + '%'),
+                    E('div', { 'style': 'color: #4facfe; font-weight: 700; font-size: 1.1rem; direction: ltr; unicode-bidi: isolate;' }, memPercent + '%'),
                     E('div', { 'style': 'color: #64748b; font-size: 0.75rem;' }, 'الذاكرة')
                 ]),
                 // Storage mini card
@@ -211,7 +211,7 @@ return view.extend({
                     'style': 'background: rgba(240,147,251,0.08); border-radius: 10px; padding: 14px; text-align: center;'
                 }, [
                     E('div', { 'style': 'font-size: 1.5rem;' }, '💾'),
-                    E('div', { 'style': 'color: #f093fb; font-weight: 700; font-size: 1.1rem;' }, rootPercent + '%'),
+                    E('div', { 'style': 'color: #f093fb; font-weight: 700; font-size: 1.1rem; direction: ltr; unicode-bidi: isolate;' }, rootPercent + '%'),
                     E('div', { 'style': 'color: #64748b; font-size: 0.75rem;' }, 'التخزين')
                 ])
             ]),

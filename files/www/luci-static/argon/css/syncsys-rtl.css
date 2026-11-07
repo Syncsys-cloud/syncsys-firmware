@@ -9,6 +9,34 @@
     text-align: right !important;
 }
 
+/* Prevent BiDi reordering on technical/numeric values */
+.main-right .cbi-value-field,
+.main-right .cbi-value-field input,
+.main-right .cbi-value-field select,
+.main-right .cbi-value-field textarea,
+.main-right .cbi-section td:first-child,
+.main-right code,
+.main-right pre,
+.main-right .ifacebox-body,
+.main-right [data-name],
+.main-right .cbi-input-text,
+.main-right .cbi-dropdown > ul > li,
+.main-right .td[data-title]::after {
+    direction: ltr !important;
+    unicode-bidi: isolate !important;
+}
+
+/* Keep form input fields LTR */
+.main-right input[type="text"],
+.main-right input[type="password"],
+.main-right input[type="number"],
+.main-right select,
+.main-right textarea {
+    direction: ltr !important;
+    unicode-bidi: isolate !important;
+    text-align: left !important;
+}
+
 /* Content areas RTL */
 .cbi-map,
 .cbi-section,
@@ -43,11 +71,17 @@
     /* Table content RTL */
     .main-right table,
     .main-right th,
-    .main-right td,
     .main-right .tr,
-    .main-right .td,
     .main-right .th {
         direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* Table data cells: keep LTR for technical values */
+    .main-right td,
+    .main-right .td {
+        direction: ltr !important;
+        unicode-bidi: isolate !important;
         text-align: right !important;
     }
 
@@ -81,6 +115,14 @@
     .main-left .sidenav-header .brand {
         /* Keep sidebar LTR layout, only flip inline text if needed */
         unicode-bidi: plaintext;
+    }
+
+    /* SVG logo in sidebar brand */
+    .main-left .brand img,
+    .main-right .brand img {
+        height: 38px;
+        max-width: 180px;
+        object-fit: contain;
     }
 
     /* === LUXURY BRANDING === */

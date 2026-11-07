@@ -9,3 +9,6 @@
 *.conf text eol=lf
 *.yml text eol=lf
 banner text eol=lf
+# UCI config files (no extension)
+files/etc/config/* text eol=lf
+

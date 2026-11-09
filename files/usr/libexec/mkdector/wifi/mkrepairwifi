@@ -1,0 +1,158 @@
+#!/bin/sh
+#
+# mkrepairwifi - Apply Wi-Fi repairs (2.4GHz / 5GHz)
+# Inputs:
+#   MK_SOLUTION = auto|enable|add_iface|fix_name|reload|nofix
+#   MK_ISSUES   = JSON array string e.g. ["wifi24_disabled","wifi5_no_iface"]
+# Output: text to stdout (logged by mkdector)
+
+set -eu
+
+say() { echo "[wifi][repair] $*"; }
+uci_get() { uci -q get "$1" 2>/dev/null || true; }
+
+SOLUTION="${MK_SOLUTION:-auto}"
+ISSUES_JSON="${MK_ISSUES:-[]}"
+
+issue_selected() {
+  # Simple containment check for our fixed IDs (safe for known ids)
+  echo "$ISSUES_JSON" | grep -q "\"$1\""
+}
+
+list_wifi_ifaces() {
+  uci -q show wireless 2>/dev/null | awk -F'[.=]' '/=wifi-iface/{print $2}'
+}
+
+ifaces_for_radio() {
+  local radio="$1" s dev
+  for s in $(list_wifi_ifaces); do
+    dev="$(uci_get wireless.$s.device)"
+    [ "$dev" = "$radio" ] && echo "$s"
+  done
+}
+
+count_ifaces_for_radio() {
+  local radio="$1" n=0
+  for _ in $(ifaces_for_radio "$radio"); do n=$((n+1)); done
+  echo "$n"
+}
+
+commit_and_reload() {
+  uci -q commit wireless 2>/dev/null || true
+  if command -v wifi >/dev/null 2>&1; then
+    say "wifi reload"
+    wifi reload 2>/dev/null || wifi 2>/dev/null || true
+  else
+    say "wifi command not found; committed UCI only"
+  fi
+}
+
+enable_radio() {
+  local radio="$1"
+  say "Enabling $radio"
+  uci -q set wireless.$radio.disabled='0' 2>/dev/null || true
+}
+
+add_iface_for_radio() {
+  local radio="$1" band="$2" ssid="$3" sec
+  if [ "$(count_ifaces_for_radio "$radio")" -gt 0 ]; then
+    say "$radio already has wifi-iface(s); skipping add"
+    return
+  fi
+
+  sec="$(uci -q add wireless wifi-iface 2>/dev/null || true)"
+  [ -n "$sec" ] || { say "Failed to add wifi-iface for $radio"; return; }
+
+  say "Added wifi-iface $sec for $radio (disabled by default until configured)"
+  uci -q set wireless.$sec.device="$radio" 2>/dev/null || true
+  uci -q set wireless.$sec.mode='ap' 2>/dev/null || true
+  uci -q set wireless.$sec.network='lan' 2>/dev/null || true
+  uci -q set wireless.$sec.ssid="$ssid" 2>/dev/null || true
+  uci -q set wireless.$sec.encryption='none' 2>/dev/null || true
+  uci -q set wireless.$sec.disabled='1' 2>/dev/null || true
+
+  say "NOTE: تم إنشاء واجهة $band ولكنها Disabled=1 (قم بتعديل SSID/التشفير ثم فعلها)"
+}
+
+fix_names_for_radio() {
+  local radio="$1" ssid_prefix="$2" mesh_prefix="$3" s mode ssid meshid i=0
+  for s in $(ifaces_for_radio "$radio"); do
+    i=$((i+1))
+    mode="$(uci_get wireless.$s.mode)"
+    [ -n "$mode" ] || mode="ap"
+
+    if [ "$mode" = "mesh" ]; then
+      meshid="$(uci_get wireless.$s.mesh_id)"
+      if [ -z "$meshid" ]; then
+        say "Fix mesh_id for $radio/$s -> ${mesh_prefix}${i}"
+        uci -q set wireless.$s.mesh_id="${mesh_prefix}${i}" 2>/dev/null || true
+      fi
+    else
+      ssid="$(uci_get wireless.$s.ssid)"
+      if [ -z "$ssid" ]; then
+        say "Fix ssid for $radio/$s -> ${ssid_prefix}${i}"
+        uci -q set wireless.$s.ssid="${ssid_prefix}${i}" 2>/dev/null || true
+      fi
+    fi
+  done
+}
+
+say "solution=$SOLUTION issues=$ISSUES_JSON"
+
+case "$SOLUTION" in
+  auto)
+    # Enable radios if selected
+    issue_selected wifi24_disabled && enable_radio radio0
+    issue_selected wifi5_disabled && enable_radio radio1
+
+    # Add iface if selected
+    issue_selected wifi24_no_iface && add_iface_for_radio radio0 "2.4GHz" "ALMALAKI_2G"
+    issue_selected wifi5_no_iface && add_iface_for_radio radio1 "5GHz" "ALMALAKI_5G"
+
+    # Fix names if selected
+    issue_selected wifi24_name_issue && fix_names_for_radio radio0 "ALMALAKI_2G_" "ALMALAKI_MESH_2G_"
+    issue_selected wifi5_name_issue && fix_names_for_radio radio1 "ALMALAKI_5G_" "ALMALAKI_MESH_5G_"
+
+    # Non-fixable issues: just log
+    issue_selected wifi24_noise_issue && say "2.4GHz noise/antenna issue: لا يوجد إصلاح آلي"
+    issue_selected wifi5_noise_issue && say "5GHz noise/antenna issue: لا يوجد إصلاح آلي"
+    issue_selected wifi24_not_defined && say "2.4GHz not defined (phy0 missing): راجع التعريف/الكيرنل/الدرايفر"
+    issue_selected wifi5_not_defined && say "5GHz not defined (phy1 missing): راجع التعريف/الكيرنل/الدرايفر"
+
+    commit_and_reload
+    ;;
+
+  enable)
+    enable_radio radio0
+    enable_radio radio1
+    commit_and_reload
+    ;;
+
+  add_iface)
+    add_iface_for_radio radio0 "2.4GHz" "ALMALAKI_2G"
+    add_iface_for_radio radio1 "5GHz" "ALMALAKI_5G"
+    commit_and_reload
+    ;;
+
+  fix_name)
+    fix_names_for_radio radio0 "ALMALAKI_2G_" "ALMALAKI_MESH_2G_"
+    fix_names_for_radio radio1 "ALMALAKI_5G_" "ALMALAKI_MESH_5G_"
+    commit_and_reload
+    ;;
+
+  reload)
+    commit_and_reload
+    ;;
+
+  nofix)
+    say "Selected solution 'nofix': لا يتم تطبيق أي تغييرات."
+    ;;
+
+  *)
+    say "Unknown solution: $SOLUTION"
+    exit 1
+    ;;
+esac
+
+say "Done."
+exit 0

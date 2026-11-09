@@ -1,0 +1,15 @@
+{
+  "luci-app-mkdector": {
+    "description": "Grant access to mkdector ubus methods",
+    "read": {
+      "ubus": {
+        "mkdector": [ "list", "tail", "diagnose_result", "mode_info", "scan_sections" ]
+      }
+    },
+    "write": {
+      "ubus": {
+        "mkdector": [ "diagnose", "repair", "stop", "clear" ]
+      }
+    }
+  }
+}

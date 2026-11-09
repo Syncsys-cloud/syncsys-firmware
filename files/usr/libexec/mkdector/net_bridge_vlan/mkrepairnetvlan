@@ -1,0 +1,118 @@
+#!/bin/sh
+# mkdector - VLAN/Bridge/Wi-Fi binding repair (safe)
+
+UCI=/sbin/uci
+
+uci_get() { $UCI -q get "$1" 2>/dev/null; }
+uci_has() { $UCI -q show "$1" >/dev/null 2>&1; }
+
+get_mode_id() {
+	local f="/tmp/mkdector/topology.result.json"
+	if [ -r "$f" ] && command -v jsonfilter >/dev/null 2>&1; then
+		jsonfilter -i "$f" -e '@.facts.mode_id' 2>/dev/null
+		return
+	fi
+	echo ""
+}
+
+first_vid() {
+	local vid
+	vid="$(uci_get 'network.@bridge-vlan[0].vlan')"
+	[ -n "$vid" ] && echo "$vid" && return
+	# fallback: try to parse uci show
+	vid="$($UCI -q show network 2>/dev/null | sed -n 's/^network\.@bridge-vlan\[[0-9]*\]\.vlan=\(.*\)$/\1/p' | head -n1)"
+	vid="${vid#\'}"; vid="${vid%\'}"
+	echo "$vid"
+}
+
+ensure_br_vlan() {
+	local vid="$1"
+	# Ensure device br-vlan exists
+	if ! $UCI -q show network | grep -q "=device" | grep -q "\.name='br-vlan'"; then
+		# create device section
+		local sec
+		sec="$($UCI -q add network device)" || return 1
+		$UCI -q set network."$sec".name='br-vlan'
+		$UCI -q set network."$sec".type='bridge'
+	fi
+
+	# ensure it has port br-lan.<vid> if vid present
+	if [ -n "$vid" ]; then
+		$UCI -q set network.br-vlan.device='br-vlan' >/dev/null 2>&1 || true
+		# try to find device section name for br-vlan
+		local dsec
+		dsec="$($UCI -q show network | sed -n "s/^network\.\([^=]*\)=device$/\1/p" | while read -r s; do
+			[ "$(uci_get "network.$s.name")" = "br-vlan" ] && echo "$s" && break
+		done)"
+		[ -z "$dsec" ] && dsec="br_vlan"
+		# set ports option
+		$UCI -q set network."$dsec".ports="br-lan.${vid}"
+	fi
+}
+
+ensure_vlan_iface() {
+	# Ensure interface vlan proto none device br-vlan exists and points to br-vlan
+	if ! uci_has network.vlan; then
+		$UCI -q set network.vlan=interface
+	fi
+	$UCI -q set network.vlan.proto='none'
+	$UCI -q set network.vlan.device='br-vlan'
+}
+
+fix_wifi_bindings() {
+	local mode_id="$1"
+	# Iterate wifi-iface sections and adjust network binding
+	local ifaces sec
+	ifaces="$($UCI -q show wireless 2>/dev/null | sed -n 's/^wireless\.[^=]*=wifi-iface$/&/p' | sed 's/^wireless\.\([^=]*\)=wifi-iface$/\1/')"
+	for sec in $ifaces; do
+		local wmode wds
+		wmode="$(uci_get "wireless.$sec.mode")"
+		wds="$(uci_get "wireless.$sec.wds")"
+
+		# mesh + WDS links stay on lan per your templates
+		if [ "$wmode" = "mesh" ]; then
+			$UCI -q set wireless."$sec".network='lan'
+			continue
+		fi
+		if [ "$wds" = "1" ] && { [ "$wmode" = "ap" ] || [ "$wmode" = "sta" ]; }; then
+			$UCI -q set wireless."$sec".network='lan'
+			continue
+		fi
+
+		# normal APs should be on vlan in vlan modes
+		if [ "$wmode" = "ap" ]; then
+			$UCI -q set wireless."$sec".network='vlan'
+		fi
+	done
+}
+
+main() {
+	local mode_id vid
+	mode_id="$(get_mode_id)"
+	case "$mode_id" in
+		ap_vlan|ap_vlan_mesh|ap_vlan_wds_tx|ap_vlan_wds_rx) : ;;
+		*)
+			echo "[mkdector] skip: mode is not vlan-based: ${mode_id:-unknown}" 
+			exit 0
+			;;
+	esac
+
+	vid="$(first_vid)"
+
+	echo "[mkdector] repairing VLAN/Bridge/Wi-Fi bindings (mode=$mode_id vid=${vid:-?})"
+
+	ensure_br_vlan "$vid"
+	ensure_vlan_iface
+	fix_wifi_bindings "$mode_id"
+
+	$UCI -q commit network
+	$UCI -q commit wireless
+
+	# apply
+	/etc/init.d/network reload 2>/dev/null || /etc/init.d/network restart 2>/dev/null || true
+	wifi reload 2>/dev/null || true
+
+	echo "[mkdector] done"
+}
+
+main

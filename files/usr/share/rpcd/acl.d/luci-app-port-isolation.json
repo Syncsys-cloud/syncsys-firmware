@@ -1,0 +1,11 @@
+{
+	"luci-app-port-isolation": {
+		"description": "Grant UCI access for luci-app-port-isolation",
+		"read": {
+			"uci": [ "portisolation", "network", "wireless" ]
+		},
+		"write": {
+			"uci": [ "portisolation" ]
+		}
+	}
+}

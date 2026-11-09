@@ -1,0 +1,76 @@
+#!/bin/sh
+# mkdector - Broadband PPPoE repair
+# Uses env: MK_SOLUTION
+
+UCI=/sbin/uci
+
+ensure_wan_zone() {
+	# create/update firewall zone 'wan'
+	if ! $UCI -q show firewall 2>/dev/null | grep -q "=zone" | grep -q "\.name='wan'"; then
+		local z
+		z="$($UCI -q add firewall zone)" || return 1
+		$UCI -q set firewall.$z.name='wan'
+		$UCI -q set firewall.$z.input='REJECT'
+		$UCI -q set firewall.$z.output='ACCEPT'
+		$UCI -q set firewall.$z.forward='REJECT'
+	fi
+
+	# bind PPPoE interface
+	local zone
+	zone="$($UCI -q show firewall 2>/dev/null | awk -F'[.=]' "/=zone/ && /name='wan'/{print \$2; exit}")"
+	[ -n "$zone" ] || return 1
+	# ensure network list contains 'PPPoE'
+	$UCI -q del_list firewall.$zone.network='PPPoE' >/dev/null 2>&1 || true
+	$UCI -q add_list firewall.$zone.network='PPPoE'
+	# enable NAT
+	$UCI -q set firewall.$zone.masq='1'
+	$UCI -q set firewall.$zone.mtu_fix='1'
+}
+
+ensure_forward_lan_wan() {
+	# ensure forwarding lan->wan exists
+	local fsec
+	fsec="$($UCI -q show firewall 2>/dev/null | awk -F'[.=]' "/=forwarding/ && /src='lan'/ && /dest='wan'/{print \$2; exit}")"
+	if [ -z "$fsec" ]; then
+		fsec="$($UCI -q add firewall forwarding)" || return 1
+		$UCI -q set firewall.$fsec.src='lan'
+		$UCI -q set firewall.$fsec.dest='wan'
+	fi
+}
+
+restart_pppoe() {
+	/etc/init.d/network reload 2>/dev/null || /etc/init.d/network restart 2>/dev/null || true
+}
+
+enable_fw() {
+	/etc/init.d/firewall enable 2>/dev/null || true
+	/etc/init.d/firewall start 2>/dev/null || /etc/init.d/firewall restart 2>/dev/null || true
+}
+
+main() {
+	local sol
+	sol="${MK_SOLUTION:-}"
+	[ -n "$sol" ] || sol="auto"
+
+	case "$sol" in
+		restart_pppoe|auto)
+			echo "[mkdector] restart PPPoE/network"
+			restart_pppoe
+			;;
+		enable_firewall_nat)
+			echo "[mkdector] enabling firewall + NAT (zone=wan, if=PPPoE, fwd lan->wan)"
+			ensure_wan_zone
+			ensure_forward_lan_wan
+			$UCI -q commit firewall
+			enable_fw
+			restart_pppoe
+			;;
+		nofix|*)
+			echo "[mkdector] nofix"
+			;;
+	esac
+
+	echo "[mkdector] done"
+}
+
+main

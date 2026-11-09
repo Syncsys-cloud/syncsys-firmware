@@ -1,0 +1,183 @@
+#!/bin/sh
+#
+# Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
+# AL-MALAKI OPEWNWRT TEAM < almalakiopenwrt@gmail.com> 
+# Copyright (c) 2025-2026. All Rights Reserved.
+#
+# mkchecklldpd - Diagnose LLDPD neighbor visibility problems
+# Output: ONE JSON object to stdout
+
+. /usr/share/libubox/jshn.sh 2>/dev/null
+
+# ---------- helpers ----------
+safe_int() { echo "$1" | grep -Eq '^[0-9]+$' && echo "$1" || echo "0"; }
+
+uci_get() { uci -q get "$1" 2>/dev/null; }
+
+has_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+num_only() {
+    # Extract digits only (prevents "bad number" in arithmetic/[-lt/-ge])
+    # If empty -> 0
+    local v
+    v="$(printf "%s" "$1" | tr -dc '0-9')"
+    [ -n "$v" ] && printf "%s" "$v" || printf "0"
+}
+
+neighbors_count() {
+    # Prefer lldpcli JSON if available
+    if has_cmd lldpcli; then
+        # JSON output is not always enabled; fallback to text parsing
+        # Count "Interface:" blocks as neighbors entries (best-effort)
+        lldpcli show neighbors 2>/dev/null | grep -c '^Interface:' || echo 0
+    else
+        echo 0
+    fi
+}
+
+neighbors_has_sysname() {
+    if has_cmd lldpcli; then
+        lldpcli show neighbors 2>/dev/null | grep -q 'SysName:' && echo 1 || echo 0
+    else
+        echo 0
+    fi
+}
+
+neighbors_has_sysdescr() {
+    if has_cmd lldpcli; then
+        lldpcli show neighbors 2>/dev/null | grep -q 'SysDescr:' && echo 1 || echo 0
+    else
+        echo 0
+    fi
+}
+
+neighbors_has_ipv6_mgmt() {
+    if has_cmd lldpcli; then
+        # MgmtIP: can show IPv6; detect colon pattern in MgmtIP line
+        lldpcli show neighbors 2>/dev/null | grep -E 'MgmtIP:.*:' -q && echo 1 || echo 0
+    else
+        echo 0
+    fi
+}
+
+log_flap_indicator() {
+    # Heuristic: repeated "protocol LLDP enabled" lines suggest restarts/flaps
+    # last 200 lldpd-related lines
+    logread 2>/dev/null | grep -i lldpd | tail -n 200 | grep -c 'protocol .* enabled' 2>/dev/null || echo 0
+}
+
+uptime_sec() {
+    # /proc/uptime: "123.45 67.89"
+    awk '{print int($1)}' /proc/uptime 2>/dev/null || echo 0
+}
+
+# ---------- gather ----------
+enabled="$(uci_get lldpd.config.enabled)"
+ifaces="$(uci_get lldpd.config.interface)"   # may print multiple tokens
+noinv="$(uci_get lldpd.config.lldpmed_no_inventory)"
+platform="$(uci_get lldpd.config.lldp_platform)"
+portidsub="$(uci_get lldpd.config.lldp_portidsubtype)"
+
+ps_cnt="$(num_only "$(ps w 2>/dev/null | grep -c '[l]ldpd')")"
+nbr_cnt="$(num_only "$(neighbors_count)")"
+sysname_ok="$(neighbors_has_sysname)"
+sysdescr_ok="$(neighbors_has_sysdescr)"
+ipv6mgmt_ok="$(neighbors_has_ipv6_mgmt)"
+flap_hits="$(num_only "$(log_flap_indicator)")"
+up="$(num_only "$(uptime_sec)")"
+
+# ---------- early exit: do not diagnose/repair logic if LLDPD disabled OR not running ----------
+# شرط واضح: لا تشخيص ولا إصلاح إذا كانت الخدمة غير مفعلة أو متوقفة
+if [ "${enabled:-0}" != "1" ] || [ "$ps_cnt" -le 0 ]; then
+    json_init
+    json_add_object issues
+    json_add_boolean never_seen 0
+    json_add_boolean flaps 0
+    json_add_boolean after_reboot_missing 0
+    json_add_boolean mac_only 0
+    json_add_boolean no_model 0
+    json_add_boolean ipv6_enabled 0
+    json_close_object
+
+    json_add_object facts
+    json_add_string enabled "${enabled:-0}"
+    json_add_string interfaces "${ifaces:-}"
+    json_add_int ps_lldpd "$ps_cnt"
+    json_add_int neighbors "$nbr_cnt"
+    json_add_int uptime_sec "$up"
+    json_close_object
+
+    json_add_string summary "LLDPD غير مفعّل أو غير شغال؛ فعّل الخدمة وشغّلها ثم أعد التشخيص"
+    json_add_int rc 2
+    json_dump
+    exit 0
+fi
+
+# ---------- decide issues (best-effort heuristics) ----------
+never_seen=0
+flaps=0
+after_reboot_missing=0
+mac_only=0
+no_model=0
+ipv6_enabled=0
+
+# never_seen: lldpd running+enabled but no neighbors
+if [ "$enabled" = "1" ] && [ "$ps_cnt" -gt 0 ] && [ "$nbr_cnt" -eq 0 ]; then
+    never_seen=1
+fi
+
+# flaps: too many protocol enabled messages (suggest restarts/flaps)
+if [ "$flap_hits" -ge 4 ]; then
+    flaps=1
+fi
+
+# after_reboot_missing: uptime short and still no neighbors
+if [ "$up" -lt 600 ] && [ "$nbr_cnt" -eq 0 ]; then
+    after_reboot_missing=1
+fi
+
+# mac_only: neighbors exist but SysName missing
+if [ "$nbr_cnt" -gt 0 ] && [ "$sysname_ok" -eq 0 ]; then
+    mac_only=1
+fi
+
+# no_model: if inventory is disabled OR sysdescr missing when neighbors exist
+# Your config has lldpmed_no_inventory='1' :contentReference[oaicite:2]{index=2}
+if [ "$noinv" = "1" ]; then
+    no_model=1
+elif [ "$nbr_cnt" -gt 0 ] && [ "$sysdescr_ok" -eq 0 ]; then
+    no_model=1
+fi
+
+# ipv6_enabled: if IPv6 Mgmt IP is present in neighbors OR local has global/ULA IPv6 on lan/br-lan
+if [ "$ipv6mgmt_ok" -eq 1 ]; then
+    ipv6_enabled=1
+else
+    ip -6 addr show 2>/dev/null | grep -E 'inet6 (2|3)[0-9a-f]:' -q && ipv6_enabled=1
+fi
+
+# ---------- output JSON ----------
+json_init
+json_add_object issues
+json_add_boolean never_seen "$never_seen"
+json_add_boolean flaps "$flaps"
+json_add_boolean after_reboot_missing "$after_reboot_missing"
+json_add_boolean mac_only "$mac_only"
+json_add_boolean no_model "$no_model"
+json_add_boolean ipv6_enabled "$ipv6_enabled"
+json_close_object
+
+json_add_object facts
+json_add_string enabled "${enabled:-0}"
+json_add_string interfaces "${ifaces:-}"
+json_add_int ps_lldpd "$ps_cnt"
+json_add_int neighbors "$nbr_cnt"
+json_add_string platform "${platform:-}"
+json_add_string portidsubtype "${portidsub:-}"
+json_add_int uptime_sec "$up"
+json_close_object
+
+json_add_string summary "LLDPD diagnose completed"
+json_add_int rc 0
+json_dump
+

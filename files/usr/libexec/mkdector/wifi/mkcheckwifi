@@ -1,0 +1,239 @@
+#!/bin/sh
+#
+# mkcheckwifi - Diagnose Wi-Fi radios (2.4GHz / 5GHz)
+# Outputs a single JSON object to stdout.
+
+. /usr/share/libubox/jshn.sh 2>/dev/null
+
+uci_get() { uci -q get "$1" 2>/dev/null || true; }
+
+phy_exists() { [ -d "/sys/class/ieee80211/$1" ]; }
+
+list_wifi_ifaces() {
+  uci -q show wireless 2>/dev/null | awk -F'[.=]' '/=wifi-iface/{print $2}'
+}
+
+ifaces_for_radio() {
+  local radio="$1" s dev
+  for s in $(list_wifi_ifaces); do
+    dev="$(uci_get wireless.$s.device)"
+    [ "$dev" = "$radio" ] && echo "$s"
+  done
+}
+
+count_ifaces_for_radio() {
+  local radio="$1" n=0
+  for _ in $(ifaces_for_radio "$radio"); do n=$((n+1)); done
+  echo "$n"
+}
+
+need_name_issue_for_radio() {
+  # Naming issue if any iface on radio has empty ssid (ap/sta) or empty mesh_id (mesh)
+  local radio="$1" s mode ssid meshid
+  for s in $(ifaces_for_radio "$radio"); do
+    mode="$(uci_get wireless.$s.mode)"
+    [ -n "$mode" ] || mode="ap"
+
+    if [ "$mode" = "mesh" ]; then
+      meshid="$(uci_get wireless.$s.mesh_id)"
+      if [ -z "$meshid" ]; then
+        echo 1
+        return
+      fi
+    else
+      ssid="$(uci_get wireless.$s.ssid)"
+      if [ -z "$ssid" ]; then
+        echo 1
+        return
+      fi
+    fi
+  done
+  echo 0
+}
+
+first_ifname_for_phy() {
+  local phy="$1"
+  if [ -d "/sys/class/ieee80211/$phy/device/net" ]; then
+    ls -1 "/sys/class/ieee80211/$phy/device/net" 2>/dev/null | head -n1
+    return
+  fi
+
+  if command -v iw >/dev/null 2>&1; then
+    # Fallback parse: map phy#N to Interface
+    local idx ifn
+    idx="${phy#phy}"
+    ifn="$(iw dev 2>/dev/null | awk -v want="phy#${idx}" '
+      $1==want {inphy=1}
+      inphy && $1=="Interface" {print $2; exit}
+    ')"
+    [ -n "$ifn" ] && echo "$ifn"
+  fi
+}
+
+first_ifname_for_radio() {
+  # Prefer ubus mapping (radio -> interfaces -> ifname) when available.
+  # This avoids mis-detecting wlan0 for both radios on some platforms.
+  local radio="$1" phy="$2" ifn
+
+  if command -v ubus >/dev/null 2>&1 && command -v jsonfilter >/dev/null 2>&1; then
+    ifn="$(ubus call network.wireless status 2>/dev/null | jsonfilter -e "@.${radio}.interfaces[0].ifname" 2>/dev/null)"
+    [ -n "$ifn" ] && { echo "$ifn"; return; }
+  fi
+
+  # Fallback: try PHY-based mapping
+  first_ifname_for_phy "$phy"
+}
+
+read_noise_dbm() {
+  local ifn="$1" n
+  [ -n "$ifn" ] || return 0
+
+  if command -v iwinfo >/dev/null 2>&1; then
+    # Robust extraction:
+    # iwinfo may print "Signal: unknown  Noise: -89 dBm" on a *single* line.
+    # Avoid naive ": " field splitting which can return "unknown" from the Signal field.
+    n="$(iwinfo "$ifn" info 2>/dev/null | sed -n 's/.*Noise:[[:space:]]*\(-\{0,1\}[0-9]\+\)[[:space:]]*dBm.*/\1/p' | head -n1)"
+    # Some drivers return literal "unknown"; treat it as empty so we can try other methods.
+    if [ -z "$n" ]; then
+      n="$(iwinfo "$ifn" info 2>/dev/null | sed -n 's/.*Noise:[[:space:]]*\(unknown\).*/\1/p' | head -n1)"
+    fi
+    [ "$n" = "unknown" ] && n=""
+  fi
+
+  if [ -z "$n" ] && command -v iw >/dev/null 2>&1; then
+    # Prefer the last available survey entry (more likely to be current).
+    n="$(iw dev "$ifn" survey dump 2>/dev/null | awk '/noise:/ {n=$2} END{print n}')"
+  fi
+
+  [ -n "$n" ] && echo "$n" || echo "unknown"
+}
+
+noise_issue() {
+  # Consider "antenna/noise" issue if:
+  # - interface exists and is UP
+  # - and noise reading is stuck around -110 (commonly indicates invalid/no-data)
+  local ifn="$1" n
+  [ -n "$ifn" ] || { echo 0; return; }
+  ip link show "$ifn" 2>/dev/null | grep -q "UP" || { echo 0; return; }
+
+  n="$(read_noise_dbm "$ifn")"
+  echo "$n" | grep -Eq '^-?[0-9]+$' || { echo 0; return; }
+
+  if [ "$n" -ge -110 ] && [ "$n" -le -108 ]; then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+radio_disabled_issue() {
+  local radio="$1" v
+  v="$(uci_get wireless.$radio.disabled)"
+  [ "$v" = "1" ] || [ "$v" = "true" ] || [ "$v" = "yes" ]
+}
+
+make_radio_report() {
+  # args: radio phy band_label
+  local radio="$1" phy="$2" band="$3"
+  local phy_ok iface_count ifname
+
+  phy_ok=0
+  phy_exists "$phy" && phy_ok=1
+  iface_count="$(count_ifaces_for_radio "$radio")"
+  ifname="$(first_ifname_for_radio "$radio" "$phy")"
+
+  json_add_object "${band}"
+  json_add_string radio "$radio"
+  json_add_string phy "$phy"
+  json_add_int phy_present "$phy_ok"
+  json_add_int iface_count "$iface_count"
+  json_add_string ifname "${ifname:-}"
+  json_add_string disabled "$(uci_get wireless.$radio.disabled)"
+  json_add_string noise "$(read_noise_dbm "$ifname")"
+  json_close_object
+}
+
+# ---- Diagnose ----
+
+# Issues IDs as requested
+# 2.4GHz
+ISS_24_DISABLED=wifi24_disabled
+ISS_24_NOIFACE=wifi24_no_iface
+ISS_24_NAME=wifi24_name_issue
+ISS_24_NOISE=wifi24_noise_issue
+ISS_24_NODEV=wifi24_not_defined
+
+# 5GHz
+ISS_5_DISABLED=wifi5_disabled
+ISS_5_NOIFACE=wifi5_no_iface
+ISS_5_NAME=wifi5_name_issue
+ISS_5_NOISE=wifi5_noise_issue
+ISS_5_NODEV=wifi5_not_defined
+
+issue_24_disabled=0
+issue_24_noiface=0
+issue_24_name=0
+issue_24_noise=0
+issue_24_nodev=0
+
+issue_5_disabled=0
+issue_5_noiface=0
+issue_5_name=0
+issue_5_noise=0
+issue_5_nodev=0
+
+# 2.4G
+if ! phy_exists phy0; then
+  issue_24_nodev=1
+else
+  if radio_disabled_issue radio0; then issue_24_disabled=1; fi
+  c0="$(count_ifaces_for_radio radio0)"
+  [ "$c0" -eq 0 ] && issue_24_noiface=1
+  [ "$(need_name_issue_for_radio radio0)" -eq 1 ] && issue_24_name=1
+  ifn0="$(first_ifname_for_radio radio0 phy0)"
+  [ "$(noise_issue "$ifn0")" -eq 1 ] && issue_24_noise=1
+fi
+
+# 5G
+if ! phy_exists phy1; then
+  issue_5_nodev=1
+else
+  if radio_disabled_issue radio1; then issue_5_disabled=1; fi
+  c1="$(count_ifaces_for_radio radio1)"
+  [ "$c1" -eq 0 ] && issue_5_noiface=1
+  [ "$(need_name_issue_for_radio radio1)" -eq 1 ] && issue_5_name=1
+  ifn1="$(first_ifname_for_radio radio1 phy1)"
+  [ "$(noise_issue "$ifn1")" -eq 1 ] && issue_5_noise=1
+fi
+
+total_issues=$((issue_24_disabled+issue_24_noiface+issue_24_name+issue_24_noise+issue_24_nodev+issue_5_disabled+issue_5_noiface+issue_5_name+issue_5_noise+issue_5_nodev))
+
+json_init
+
+json_add_object issues
+json_add_boolean "$ISS_24_DISABLED" "$issue_24_disabled"
+json_add_boolean "$ISS_24_NOIFACE" "$issue_24_noiface"
+json_add_boolean "$ISS_24_NAME" "$issue_24_name"
+json_add_boolean "$ISS_24_NOISE" "$issue_24_noise"
+json_add_boolean "$ISS_24_NODEV" "$issue_24_nodev"
+json_add_boolean "$ISS_5_DISABLED" "$issue_5_disabled"
+json_add_boolean "$ISS_5_NOIFACE" "$issue_5_noiface"
+json_add_boolean "$ISS_5_NAME" "$issue_5_name"
+json_add_boolean "$ISS_5_NOISE" "$issue_5_noise"
+json_add_boolean "$ISS_5_NODEV" "$issue_5_nodev"
+json_close_object
+
+json_add_object facts
+make_radio_report radio0 phy0 "wifi24"
+make_radio_report radio1 phy1 "wifi5"
+json_close_object
+
+if [ "$total_issues" -eq 0 ]; then
+  json_add_string summary "Wi-Fi: لا توجد مشاكل ظاهرة في 2.4GHz/5GHz"
+  json_add_int rc 0
+else
+  json_add_string summary "Wi-Fi: تم اكتشاف $total_issues مشكلة(مشاكل)"
+  json_add_int rc 1
+fi
+
+json_dump

@@ -1,0 +1,11 @@
+{
+  "admin/almalaki-app/mkrsptt": {
+    "title": "MKAST [إختبار السرعة]",
+    "order": 60,
+    "action": {
+      "type": "view",
+      "path": "mkrsptt/mkrsptt"
+    },
+    "depends": { "acl": [ "luci-app-mkrsptt" ] }
+  }
+}

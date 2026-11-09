@@ -1,0 +1,50 @@
+#!/bin/sh
+# mkdector - Wi-Fi Mesh repair
+
+UCI=/sbin/uci
+uci_get() { $UCI -q get "$1" 2>/dev/null; }
+
+get_mode_id() {
+	local f="/tmp/mkdector/topology.result.json"
+	if [ -r "$f" ] && command -v jsonfilter >/dev/null 2>&1; then
+		jsonfilter -i "$f" -e '@.facts.mode_id' 2>/dev/null
+		return
+	fi
+	echo ""
+}
+
+main() {
+	local mode_id ifaces sec wmode wds
+	mode_id="$(get_mode_id)"
+	case "$mode_id" in
+		ap_mesh|ap_vlan_mesh) : ;;
+		*) echo "[mkdector] skip: not a mesh mode (${mode_id:-unknown})"; exit 0;;
+	esac
+
+	echo "[mkdector] repairing mesh bindings (mode=$mode_id)"
+
+	ifaces="$($UCI -q show wireless 2>/dev/null | sed -n 's/^wireless\.\([^=]*\)=wifi-iface.*/\1/p')"
+	for sec in $ifaces; do
+		wmode="$(uci_get "wireless.$sec.mode")"
+		wds="$(uci_get "wireless.$sec.wds")"
+		# mesh must be on lan
+		if [ "$wmode" = "mesh" ]; then
+			$UCI -q set wireless."$sec".network='lan'
+			continue
+		fi
+		# APs:
+		if [ "$wmode" = "ap" ] && [ "$wds" != "1" ]; then
+			if [ "$mode_id" = "ap_vlan_mesh" ]; then
+				$UCI -q set wireless."$sec".network='vlan'
+			else
+				$UCI -q set wireless."$sec".network='lan'
+			fi
+		fi
+	done
+
+	$UCI -q commit wireless
+	wifi reload 2>/dev/null || true
+	echo "[mkdector] done"
+}
+
+main

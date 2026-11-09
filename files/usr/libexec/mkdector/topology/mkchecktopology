@@ -1,0 +1,185 @@
+#!/bin/sh
+# mkdector - topology/mode detector
+
+. /usr/share/libubox/jshn.sh 2>/dev/null
+
+UCI="/sbin/uci"
+
+uci_get() {
+	$UCI -q get "$1" 2>/dev/null
+}
+
+uci_has_section() {
+	$UCI -q show "$1" >/dev/null 2>&1
+}
+
+svc_state() {
+	# returns: running|stopped|missing
+	local s="$1"
+	[ -x "/etc/init.d/$s" ] || { echo "missing"; return; }
+	/etc/init.d/$s status >/dev/null 2>&1 && { echo "running"; return; }
+	echo "stopped"
+}
+
+wifi_collect() {
+	json_add_array wifi_ifaces
+	local ifaces sec
+	ifaces="$($UCI -q show wireless 2>/dev/null | sed -n 's/^wireless\.\([^=]*\)=wifi-iface.*/\1/p')"
+	for sec in $ifaces; do
+		local mode network wds ssid mesh_id dev band
+		mode="$(uci_get "wireless.$sec.mode")"
+		network="$(uci_get "wireless.$sec.network")"
+		wds="$(uci_get "wireless.$sec.wds")"
+		ssid="$(uci_get "wireless.$sec.ssid")"
+		mesh_id="$(uci_get "wireless.$sec.mesh_id")"
+		dev="$(uci_get "wireless.$sec.device")"
+		band=""
+		[ -n "$dev" ] && band="$(uci_get "wireless.$dev.band")"
+		[ -z "$band" ] && [ -n "$dev" ] && band="$(uci_get "wireless.$dev.hwmode")"
+
+		json_add_object ""
+		json_add_string section "$sec"
+		json_add_string device "${dev:-}" 
+		json_add_string band "${band:-}" 
+		json_add_string mode "${mode:-}" 
+		json_add_string network "${network:-}" 
+		json_add_boolean wds "$( [ "$wds" = "1" ] && echo 1 || echo 0 )"
+		json_add_string ssid "${ssid:-}" 
+		json_add_string mesh_id "${mesh_id:-}" 
+		json_close_object
+	done
+	json_close_array
+}
+
+detect_flags_and_mode() {
+	local has_vlan=0 has_mesh=0 has_wds_tx=0 has_wds_rx=0 is_broadband=0
+	local mode_id="ap"
+
+	# broadband (pppoe)
+	if uci_has_section "network.pppoe"; then
+		local p
+		p="$(uci_get "network.pppoe.proto")"
+		[ "$p" = "pppoe" ] && is_broadband=1
+	fi
+
+	# vlan detection (common patterns in your deployments)
+	if uci_has_section "network.vlan"; then
+		# interface name vlan exists
+		has_vlan=1
+	fi
+	if uci_has_section "network.br-vlan" || uci_has_section "network.br_vlan"; then
+		has_vlan=1
+	fi
+	# check any bridge-vlan on br-lan
+	if $UCI -q show network 2>/dev/null | grep -q "=bridge-vlan"; then
+		# only mark vlan if br-lan is present
+		has_vlan=1
+	fi
+
+	# wifi: mesh / wds tx/rx
+	local ifaces sec
+	ifaces="$($UCI -q show wireless 2>/dev/null | sed -n 's/^wireless\.\([^=]*\)=wifi-iface.*/\1/p')"
+	for sec in $ifaces; do
+		local wmode wds
+		wmode="$(uci_get "wireless.$sec.mode")"
+		wds="$(uci_get "wireless.$sec.wds")"
+		[ "$wmode" = "mesh" ] && has_mesh=1
+		if [ "$wds" = "1" ]; then
+			[ "$wmode" = "ap" ] && has_wds_tx=1
+			[ "$wmode" = "sta" ] && has_wds_rx=1
+		fi
+	done
+
+	if [ "$is_broadband" -eq 1 ]; then
+		mode_id="ap_broadband"
+	else
+		if [ "$has_vlan" -eq 1 ]; then
+			if [ "$has_mesh" -eq 1 ]; then
+				mode_id="ap_vlan_mesh"
+			elif [ "$has_wds_tx" -eq 1 ]; then
+				mode_id="ap_vlan_wds_tx"
+			elif [ "$has_wds_rx" -eq 1 ]; then
+				mode_id="ap_vlan_wds_rx"
+			else
+				mode_id="ap_vlan"
+			fi
+		else
+			if [ "$has_mesh" -eq 1 ]; then
+				mode_id="ap_mesh"
+			elif [ "$has_wds_tx" -eq 1 ]; then
+				mode_id="ap_wds_tx"
+			elif [ "$has_wds_rx" -eq 1 ]; then
+				mode_id="ap_wds_rx"
+			else
+				mode_id="ap"
+			fi
+		fi
+	fi
+
+	json_add_object flags
+	json_add_boolean has_vlan "$has_vlan"
+	json_add_boolean has_mesh "$has_mesh"
+	json_add_boolean has_wds_tx "$has_wds_tx"
+	json_add_boolean has_wds_rx "$has_wds_rx"
+	json_add_boolean is_broadband "$is_broadband"
+	json_close_object
+
+	json_add_string mode_id "$mode_id"
+
+	# human label (Arabic-friendly)
+	local mode_label
+	case "$mode_id" in
+		ap) mode_label="AP" ;;
+		ap_mesh) mode_label="AP + MESH" ;;
+		ap_wds_tx) mode_label="AP + WDS (مرسل)" ;;
+		ap_wds_rx) mode_label="AP + WDS (مستقبل)" ;;
+		ap_vlan) mode_label="AP + VLAN" ;;
+		ap_vlan_mesh) mode_label="AP + VLAN + MESH" ;;
+		ap_vlan_wds_tx) mode_label="AP + VLAN + WDS (مرسل)" ;;
+		ap_vlan_wds_rx) mode_label="AP + VLAN + WDS (مستقبل)" ;;
+		ap_broadband) mode_label="AP برودباند (PPPoE)" ;;
+		*) mode_label="غير معروف" ;;
+	esac
+	json_add_string mode_label "$mode_label"
+}
+
+main() {
+	json_init
+
+	json_add_object issues
+	json_add_boolean unknown_mode 0
+	json_close_object
+
+	json_add_object facts
+
+	# services snapshot
+	json_add_object services
+	json_add_string firewall "$(svc_state firewall)"
+	json_add_string dnsmasq "$(svc_state dnsmasq)"
+	json_add_string odhcpd "$(svc_state odhcpd)"
+	json_close_object
+
+	# basic network snapshot
+	json_add_object network
+	json_add_boolean wan_present "$(uci_has_section network.wan && echo 1 || echo 0)"
+	json_add_boolean wan6_present "$(uci_has_section network.wan6 && echo 1 || echo 0)"
+	json_add_string lan_ip "$(uci_get network.lan.ipaddr)"
+	json_add_string lan_device "$(uci_get network.lan.device)"
+	json_close_object
+
+	detect_flags_and_mode
+
+	# supported modes list (for UI)
+	json_add_array supported_modes
+	for m in ap ap_mesh ap_wds_tx ap_wds_rx ap_vlan ap_vlan_mesh ap_vlan_wds_tx ap_vlan_wds_rx ap_broadband; do
+		json_add_string "" "$m"
+	done
+	json_close_array
+
+	wifi_collect
+
+	json_close_object
+	json_dump
+}
+
+main

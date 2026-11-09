@@ -1,0 +1,15 @@
+{
+  "luci-app-mk-swmode": {
+    "description": "Grant access to MK switch mode ubus methods",
+    "read": {
+      "ubus": {
+        "mk-swmode": [ "status", "detect", "preview", "diagnostics" ]
+      }
+    },
+    "write": {
+      "ubus": {
+        "mk-swmode": [ "apply", "backup", "restore" ]
+      }
+    }
+  }
+}

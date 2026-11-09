@@ -1,0 +1,266 @@
+{
+  "version": 2,
+  "sections": [
+    {
+      "id": "topology",
+      "title": "تحديد وضع الجهاز (Mode)",
+      "icon": "system",
+      "tier": "engine",
+      "desc": "يكتشف وضع تشغيل الجهاز الحالي (AP / Mesh / WDS / VLAN / برودباند) وكل الإشارات الداعمة، وهو أساس بقية الفحوصات.",
+      "relevant_modes": [ "all" ],
+      "issues": [
+        { "id": "unknown_mode", "label": "تعذر تحديد وضع الجهاز بدقة", "hint": "لم تتطابق إعدادات الجهاز مع أي وضع معروف من أوضاع الملكي.", "severity": "warn" }
+      ],
+      "solutions": [
+        { "id": "nofix", "label": "بدون إصلاح (عرض معلومات فقط)", "desc": "قسم معلوماتي — لا يُجري أي تغيير.", "risk": "safe" }
+      ],
+      "recommend": [],
+      "default_solution": "nofix",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/topology/mkchecktopology",
+        "repair": "/bin/true"
+      }
+    },
+    {
+      "id": "baseline",
+      "title": "فحص الأساسيات (WAN/DHCP/Services)",
+      "icon": "system",
+      "desc": "يقارن الخدمات والواجهات الأساسية بالنمط المعتمد لوضع جهازك (ملفات profiles) ويكشف أي انحراف.",
+      "relevant_modes": [ "all" ],
+      "issues": [
+        { "id": "wan_present", "label": "وجود واجهة WAN رغم أن الوضع Access Point", "hint": "أنماط الأكسس المعتمدة لا تحتوي WAN — وجودها قد يسبب سلوكًا غير متوقع.", "severity": "warn" },
+        { "id": "wan6_present", "label": "وجود واجهة WAN6 رغم أن الوضع Access Point", "hint": "نفس مبدأ WAN لكن للـ IPv6.", "severity": "warn" },
+        { "id": "firewall_unexpected", "label": "حالة firewall غير مطابقة للوضع", "hint": "في أوضاع الأكسس يكون الجدار متوقفًا؛ تشغيله قد يقطع مرور البيانات.", "severity": "critical" },
+        { "id": "dnsmasq_unexpected", "label": "حالة dnsmasq غير مطابقة للوضع", "hint": "خادم DHCP/DNS يجب أن يطابق نمط الوضع وإلا تحدث تعارضات عناوين.", "severity": "critical" },
+        { "id": "odhcpd_unexpected", "label": "حالة odhcpd غير مطابقة للوضع", "hint": "خادم DHCPv6 يجب أن يكون متوقفًا في أوضاع الأكسس.", "severity": "warn" },
+        { "id": "dhcp_enabled", "label": "DHCP على LAN غير متوقف (dhcp.lan.ignore!=1)", "hint": "أخطر مشكلة في الأكسس: خادم DHCP ثانٍ على الشبكة يوزع عناوين متضاربة.", "severity": "critical" },
+        { "id": "profiles_missing", "label": "ملفات الأوضاع غير موجودة", "hint": "ملف profiles.json مفقود — لا يمكن المقارنة بالنمط المعتمد.", "severity": "warn" }
+      ],
+      "solutions": [
+        { "id": "auto", "label": "الحل الأول: إصلاح تلقائي آمن", "desc": "يحذف WAN/WAN6، يوقف DHCP على LAN، ويضبط الخدمات حسب نمط الوضع ثم يعيد تحميل الشبكة.", "risk": "medium" },
+        { "id": "safe", "label": "الحل الثاني: إصلاح آمن", "desc": "نفس الإصلاح التلقائي (مسار متطابق حاليًا).", "risk": "medium" },
+        { "id": "nofix", "label": "بدون إصلاح", "desc": "عرض النتائج فقط دون أي تغيير.", "risk": "safe" }
+      ],
+      "recommend": [
+        { "issues": [ "wan_present", "wan6_present", "firewall_unexpected", "dnsmasq_unexpected", "odhcpd_unexpected", "dhcp_enabled" ], "solution": "auto" }
+      ],
+      "default_solution": "nofix",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/baseline/mkcheckbaseline",
+        "repair": "/usr/libexec/mkdector/baseline/mkrepairbaseline"
+      }
+    },
+    {
+      "id": "net_bridge_vlan",
+      "title": "VLAN / Bridge / Wi-Fi Binding",
+      "icon": "network",
+      "desc": "يتحقق من سلامة br-vlan وواجهة vlan وربط واجهات الواي فاي الصحيح في أوضاع VLAN.",
+      "relevant_modes": [ "ap_vlan", "ap_vlan_mesh", "ap_vlan_wds_tx", "ap_vlan_wds_rx" ],
+      "issues": [
+        { "id": "not_vlan_mode", "label": "هذا القسم مخصص لأوضاع VLAN فقط", "hint": "وضع جهازك الحالي ليس VLAN — لا حاجة لهذا الفحص.", "severity": "info" },
+        { "id": "br_vlan_missing", "label": "br-vlan غير موجود", "hint": "الجسر الأساسي لعزل الترافيك مفقود — شبكة VLAN لن تعمل.", "severity": "critical" },
+        { "id": "vlan_iface_missing", "label": "واجهة network.vlan غير موجودة (proto=none)", "hint": "الواجهة المنطقية التي تربط الواي فاي بالجسر مفقودة.", "severity": "critical" },
+        { "id": "vlan_iface_wrong_device", "label": "واجهة vlan غير مربوطة بـ br-vlan", "hint": "الواجهة موجودة لكنها تشير لجهاز خاطئ.", "severity": "critical" },
+        { "id": "wifi_binding_wrong", "label": "ربط بعض واجهات Wi-Fi على lan بدل vlan (أو العكس)", "hint": "واجهات الزبائن يجب أن تكون على vlan وواجهات الإدارة على lan.", "severity": "warn" }
+      ],
+      "solutions": [
+        { "id": "auto", "label": "إصلاح تلقائي آمن", "desc": "ينشئ/يصحح br-vlan وواجهة vlan ويعيد ربط واجهات الواي فاي حسب النمط.", "risk": "medium" },
+        { "id": "nofix", "label": "بدون إصلاح", "desc": "عرض النتائج فقط.", "risk": "safe" }
+      ],
+      "recommend": [
+        { "issues": [ "br_vlan_missing", "vlan_iface_missing", "vlan_iface_wrong_device", "wifi_binding_wrong" ], "solution": "auto" }
+      ],
+      "default_solution": "nofix",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/net_bridge_vlan/mkchecknetvlan",
+        "repair": "/usr/libexec/mkdector/net_bridge_vlan/mkrepairnetvlan"
+      }
+    },
+    {
+      "id": "wifi_mesh",
+      "title": "Wi-Fi Mesh (802.11s)",
+      "icon": "wifi",
+      "desc": "يتحقق من وجود واجهة Mesh وربطها الصحيح ومطابقة ربط واجهات AP لوضع الجهاز.",
+      "relevant_modes": [ "ap_mesh", "ap_vlan_mesh" ],
+      "issues": [
+        { "id": "not_mesh_mode", "label": "هذا القسم مخصص لأوضاع Mesh فقط", "hint": "وضع جهازك الحالي لا يستخدم Mesh.", "severity": "info" },
+        { "id": "mesh_missing", "label": "لا توجد واجهة Mesh", "hint": "لن يستطيع الجهاز الانضمام لشبكة الميش بدون هذه الواجهة.", "severity": "critical" },
+        { "id": "mesh_not_on_lan", "label": "واجهة Mesh غير مربوطة على lan", "hint": "واجهة الميش (الباك هول) يجب أن تكون على lan.", "severity": "critical" },
+        { "id": "ap_binding_mismatch", "label": "ربط واجهات AP لا يطابق وضع الجهاز", "hint": "واجهات البث موزعة على الشبكات الخاطئة.", "severity": "warn" }
+      ],
+      "solutions": [
+        { "id": "auto", "label": "إصلاح تلقائي", "desc": "يضيف/يصحح واجهة الميش وربطها ويعيد تحميل الواي فاي.", "risk": "medium" },
+        { "id": "nofix", "label": "بدون إصلاح", "desc": "عرض النتائج فقط.", "risk": "safe" }
+      ],
+      "recommend": [
+        { "issues": [ "mesh_missing", "mesh_not_on_lan", "ap_binding_mismatch" ], "solution": "auto" }
+      ],
+      "default_solution": "nofix",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/wifi_mesh/mkcheckwifimesh",
+        "repair": "/usr/libexec/mkdector/wifi_mesh/mkrepairwifimesh"
+      }
+    },
+    {
+      "id": "wifi_wds",
+      "title": "Wi-Fi WDS",
+      "icon": "wifi",
+      "desc": "يتحقق من واجهة WDS (مرسل/مستقبل) وربطها الصحيح ومطابقة ربط واجهات AP.",
+      "relevant_modes": [ "ap_wds_tx", "ap_wds_rx", "ap_vlan_wds_tx", "ap_vlan_wds_rx" ],
+      "issues": [
+        { "id": "not_wds_mode", "label": "هذا القسم مخصص لأوضاع WDS فقط", "hint": "وضع جهازك الحالي لا يستخدم WDS.", "severity": "info" },
+        { "id": "wds_missing", "label": "لا توجد واجهة WDS", "hint": "وصلة WDS مفقودة — لن يتصل الجهاز بالطرف الآخر.", "severity": "critical" },
+        { "id": "wds_not_on_lan", "label": "واجهة WDS غير مربوطة على lan", "hint": "واجهة الوصلة يجب أن تكون على lan.", "severity": "critical" },
+        { "id": "ap_binding_mismatch", "label": "ربط واجهات AP لا يطابق وضع الجهاز", "hint": "واجهات البث موزعة على الشبكات الخاطئة.", "severity": "warn" }
+      ],
+      "solutions": [
+        { "id": "auto", "label": "إصلاح تلقائي", "desc": "يضيف/يصحح واجهة WDS وربطها ويعيد تحميل الواي فاي.", "risk": "medium" },
+        { "id": "nofix", "label": "بدون إصلاح", "desc": "عرض النتائج فقط.", "risk": "safe" }
+      ],
+      "recommend": [
+        { "issues": [ "wds_missing", "wds_not_on_lan", "ap_binding_mismatch" ], "solution": "auto" }
+      ],
+      "default_solution": "nofix",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/wifi_wds/mkcheckwifiwds",
+        "repair": "/usr/libexec/mkdector/wifi_wds/mkrepairwifiwds"
+      }
+    },
+    {
+      "id": "uplink",
+      "title": "اتصال المصدر / الإنترنت (Uplink)",
+      "icon": "network",
+      "tier": "secondary",
+      "desc": "فحص فرعي اختياري: البوابة الافتراضية ← الوصول للبوابة ← الإنترنت ← DNS، مع قياس زمن الاستجابة RTT. (ليس أساسيًا لأوضاع الأكسس.)",
+      "relevant_modes": [ "all" ],
+      "issues": [
+        { "id": "no_default_route", "label": "لا يوجد Default Route", "hint": "الجهاز لا يعرف طريقه للخارج — تحقق من إعدادات LAN/Gateway.", "severity": "critical" },
+        { "id": "gateway_unreachable", "label": "الـ Gateway غير قابل للوصول", "hint": "البوابة معرفة لكنها لا ترد — مشكلة كابل/سويتش/راوتر مصدر.", "severity": "critical" },
+        { "id": "internet_unreachable", "label": "لا يوجد اتصال إنترنت", "hint": "البوابة تعمل لكن لا وصول للإنترنت — المشكلة عند المصدر غالبًا.", "severity": "critical" },
+        { "id": "dns_failed", "label": "فشل DNS (nslookup)", "hint": "الإنترنت يعمل بالأرقام لكن ترجمة الأسماء معطلة — تحقق من خوادم DNS.", "severity": "warn" }
+      ],
+      "solutions": [
+        { "id": "auto", "label": "إصلاح آمن (network reload)", "desc": "يعيد تحميل إعدادات الشبكة — يفيد عند تعليق الواجهات (انقطاع لحظي محتمل).", "risk": "medium" },
+        { "id": "nofix", "label": "بدون إصلاح", "desc": "عرض النتائج فقط.", "risk": "safe" }
+      ],
+      "recommend": [
+        { "issues": [ "no_default_route", "gateway_unreachable", "internet_unreachable", "dns_failed" ], "solution": "auto" }
+      ],
+      "default_solution": "nofix",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/uplink/mkcheckuplink",
+        "repair": "/usr/libexec/mkdector/uplink/mkrepairuplink"
+      }
+    },
+    {
+      "id": "broadband_pppoe",
+      "title": "AP برودباند: PPPoE + Firewall/NAT",
+      "icon": "network",
+      "desc": "يتحقق من اتصال PPPoE وسلامة سلسلة الجدار الناري: منطقة wan، وNAT، وتمرير lan→wan.",
+      "relevant_modes": [ "ap_broadband" ],
+      "issues": [
+        { "id": "pppoe_missing", "label": "واجهة PPPoE غير موجودة أو proto ليس pppoe", "hint": "إعداد الاتصال بالمزود مفقود أو ببروتوكول خاطئ.", "severity": "critical" },
+        { "id": "pppoe_down", "label": "PPPoE غير متصل (down)", "hint": "الإعداد موجود لكن الجلسة غير قائمة — تحقق من بيانات المزود أو الخط.", "severity": "critical" },
+        { "id": "firewall_stopped", "label": "firewall متوقف", "hint": "في البرودباند الجدار ضروري لعمل NAT — بدونه لا إنترنت للزبائن.", "severity": "critical" },
+        { "id": "wan_zone_missing", "label": "منطقة wan غير موجودة", "hint": "منطقة الجدار الخاصة بالخارج مفقودة.", "severity": "critical" },
+        { "id": "wan_zone_no_pppoe", "label": "منطقة wan لا تحتوي واجهة PPPoE", "hint": "الجلسة خارج منطقة wan فلا يطبق عليها NAT.", "severity": "critical" },
+        { "id": "nat_disabled", "label": "NAT (masq) غير مفعل", "hint": "بدون masquerade لن تخرج عناوين الزبائن للإنترنت.", "severity": "critical" },
+        { "id": "lan_to_wan_forward_missing", "label": "Forwarding lan -> wan غير موجود", "hint": "قاعدة تمرير ترافيك الزبائن نحو الخارج مفقودة.", "severity": "critical" }
+      ],
+      "solutions": [
+        { "id": "restart_pppoe", "label": "إعادة تشغيل PPPoE/Network", "desc": "يعيد إنشاء جلسة PPPoE — انقطاع قصير أثناء إعادة الاتصال.", "risk": "medium" },
+        { "id": "enable_firewall_nat", "label": "تفعيل Firewall + NAT (موصى به)", "desc": "يفعل الجدار ويضبط منطقة wan وmasq وقاعدة التمرير.", "risk": "medium" },
+        { "id": "nofix", "label": "بدون إصلاح", "desc": "عرض النتائج فقط.", "risk": "safe" }
+      ],
+      "recommend": [
+        { "issues": [ "pppoe_missing", "pppoe_down" ], "solution": "restart_pppoe" },
+        { "issues": [ "firewall_stopped", "wan_zone_missing", "wan_zone_no_pppoe", "nat_disabled", "lan_to_wan_forward_missing" ], "solution": "enable_firewall_nat" }
+      ],
+      "default_solution": "nofix",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/broadband_pppoe/mkcheckpppoe",
+        "repair": "/usr/libexec/mkdector/broadband_pppoe/mkrepairpppoe"
+      }
+    },
+    {
+      "id": "lldpd",
+      "title": "الظهور في النيبرز (LLDPD)",
+      "icon": "network",
+      "desc": "يشخص مشاكل ظهور الجهاز في جيران الشبكة (LLDP) بعشرة أنماط حلول متدرجة.",
+      "relevant_modes": [ "all" ],
+      "issues": [
+        { "id": "never_seen", "label": "الجهاز لا يظهر في النيبرز أبدًا", "hint": "الخدمة متوقفة أو غير مرتبطة بأي واجهة.", "severity": "warn" },
+        { "id": "flaps", "label": "الجهاز يظهر ويختفي أحيانًا", "hint": "غالبًا ضجيج برودكاست أو فترات إعلان قصيرة.", "severity": "warn" },
+        { "id": "after_reboot_missing", "label": "الجهاز يختفي بعد إعادة التشغيل", "hint": "الخدمة تسبق جاهزية الواجهة عند الإقلاع.", "severity": "warn" },
+        { "id": "mac_only", "label": "يظهر عنوان الماك فقط", "hint": "نوع المعرف المرسل ChassisID غير مناسب.", "severity": "info" },
+        { "id": "no_model", "label": "الجهاز لا يظهر الموديل", "hint": "الإعلانات لا تتضمن حقول الجرد (Inventory TLVs).", "severity": "info" },
+        { "id": "ipv6_enabled", "label": "الجهاز يظهر مفعل IPv6", "hint": "بروتوكولات الإدارة تعلن عناوين IPv6 غير مرغوبة.", "severity": "info" }
+      ],
+      "solutions": [
+        { "id": "auto", "label": "الحل الأول: الإصلاح التلقائي", "desc": "تهيئة قياسية شاملة للخدمة وإعادة تشغيلها.", "risk": "safe" },
+        { "id": "proto", "label": "الحل الثاني: إصلاح أنواع البروتوكولات", "desc": "يضبط بروتوكولات الإعلان (LLDP/CDP...) ويعطل غير المرغوب.", "risk": "safe" },
+        { "id": "large", "label": "الحل الثالث: إصلاح التهيئة المكبرة", "desc": "يفعل حقول الجرد الكاملة (الموديل/الإصدار...).", "risk": "safe" },
+        { "id": "iface", "label": "الحل الرابع: إصلاح الواجهة المرتبطة", "desc": "يعيد ربط الخدمة بالواجهة الصحيحة (br-lan).", "risk": "safe" },
+        { "id": "idtype", "label": "الحل الخامس: إصلاح نوع المعرف المرسل", "desc": "يجعل المعرف بالاسم بدل الماك.", "risk": "safe" },
+        { "id": "bcast", "label": "الحل السادس: إصلاح البرودكاست العالي", "desc": "يضبط فترات الإعلان لتقليل الضجيج والاختفاء المتقطع.", "risk": "safe" },
+        { "id": "confT1", "label": "الحل السابع: تجربة نمط إعدادات 1", "desc": "نمط تهيئة جاهز للتجربة عند فشل الحلول الموجهة.", "risk": "safe" },
+        { "id": "confT2", "label": "الحل الثامن: تجربة نمط إعدادات 2", "desc": "نمط تهيئة جاهز للتجربة.", "risk": "safe" },
+        { "id": "confT3", "label": "الحل التاسع: تجربة نمط إعدادات 3", "desc": "نمط تهيئة جاهز للتجربة.", "risk": "safe" },
+        { "id": "confT4", "label": "الحل العاشر: تجربة نمط إعدادات 4", "desc": "نمط تهيئة جاهز للتجربة.", "risk": "safe" },
+        { "id": "confT5", "label": "الحل الحادي عشر: تجربة نمط إعدادات 5", "desc": "نمط تهيئة جاهز للتجربة.", "risk": "safe" }
+      ],
+      "recommend": [
+        { "issues": [ "never_seen" ], "solution": "auto" },
+        { "issues": [ "flaps" ], "solution": "bcast" },
+        { "issues": [ "after_reboot_missing" ], "solution": "iface" },
+        { "issues": [ "mac_only" ], "solution": "idtype" },
+        { "issues": [ "no_model" ], "solution": "large" },
+        { "issues": [ "ipv6_enabled" ], "solution": "proto" }
+      ],
+      "default_solution": "auto",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/lldpd/mkchecklldpd",
+        "repair": "/usr/libexec/mkdector/lldpd/mkrepairlldpd"
+      }
+    },
+    {
+      "id": "wifi",
+      "title": "محولات الواي فاي (2.4GHz / 5GHz)",
+      "icon": "wifi",
+      "desc": "يفحص حالة الراديوهين: التفعيل، الواجهات المضافة، التسمية، والهوائي/الضجيج.",
+      "relevant_modes": [ "all" ],
+      "issues": [
+        { "id": "wifi24_disabled", "label": "2.4GHz: محول الواي فاي موقف", "hint": "الراديو معطل في الإعدادات (disabled=1).", "severity": "critical" },
+        { "id": "wifi24_no_iface", "label": "2.4GHz: لا توجد واجهة مضافة على المحول", "hint": "الراديو يعمل لكن بلا أي شبكة بث معرفة.", "severity": "warn" },
+        { "id": "wifi24_name_issue", "label": "2.4GHz: مشكلة في التسمية (SSID/Mesh ID فارغ)", "hint": "اسم الشبكة فارغ — الواجهة لن تبث بشكل صحيح.", "severity": "warn" },
+        { "id": "wifi24_noise_issue", "label": "2.4GHz: مشكلة في الهوائي/Noise", "hint": "قراءة ضجيج ثابتة قرب ‎-110dBm تدل غالبًا على مشكلة هوائي/قراءة.", "severity": "warn" },
+        { "id": "wifi24_not_defined", "label": "2.4GHz: المحول غير معرف (phy0 مفقود)", "hint": "النظام لا يرى عتاد الراديو — مشكلة تعريف أو عتاد.", "severity": "critical" },
+        { "id": "wifi5_disabled", "label": "5GHz: محول الواي فاي موقف", "hint": "الراديو معطل في الإعدادات (disabled=1).", "severity": "critical" },
+        { "id": "wifi5_no_iface", "label": "5GHz: لا توجد واجهة مضافة على المحول", "hint": "الراديو يعمل لكن بلا أي شبكة بث معرفة.", "severity": "warn" },
+        { "id": "wifi5_name_issue", "label": "5GHz: مشكلة في التسمية (SSID/Mesh ID فارغ)", "hint": "اسم الشبكة فارغ — الواجهة لن تبث بشكل صحيح.", "severity": "warn" },
+        { "id": "wifi5_noise_issue", "label": "5GHz: مشكلة في الهوائي/Noise", "hint": "قراءة ضجيج ثابتة قرب ‎-110dBm تدل غالبًا على مشكلة هوائي/قراءة.", "severity": "warn" },
+        { "id": "wifi5_not_defined", "label": "5GHz: المحول غير معرف (phy1 مفقود)", "hint": "النظام لا يرى عتاد الراديو — مشكلة تعريف أو عتاد.", "severity": "critical" }
+      ],
+      "solutions": [
+        { "id": "auto", "label": "الحل الأول: إصلاح تلقائي (المشاكل القابلة للإصلاح)", "desc": "يعالج التعطيل والواجهات المفقودة والتسمية دفعة واحدة ثم يعيد التحميل.", "risk": "medium" },
+        { "id": "enable", "label": "الحل الثاني: تفعيل محولات الواي فاي فقط", "desc": "يزيل disabled عن الراديوهات دون تغييرات أخرى.", "risk": "safe" },
+        { "id": "add_iface", "label": "الحل الثالث: إضافة واجهات Wi-Fi مفقودة (Disabled=1 افتراضيًا)", "desc": "ينشئ واجهات بث للراديو الخالي — تُنشأ معطلة حتى تراجعها.", "risk": "safe" },
+        { "id": "fix_name", "label": "الحل الرابع: إصلاح التسمية الفارغة (SSID/Mesh ID)", "desc": "يضع اسمًا افتراضيًا للواجهات فارغة الاسم.", "risk": "safe" },
+        { "id": "reload", "label": "الحل الخامس: إعادة تحميل الواي فاي (wifi reload)", "desc": "يعيد تشغيل منظومة الواي فاي — انقطاع بث لثوانٍ.", "risk": "medium" },
+        { "id": "nofix", "label": "بدون إصلاح (للإبلاغ فقط)", "desc": "عرض النتائج فقط.", "risk": "safe" }
+      ],
+      "recommend": [
+        { "issues": [ "wifi24_disabled", "wifi5_disabled" ], "solution": "enable" },
+        { "issues": [ "wifi24_no_iface", "wifi5_no_iface" ], "solution": "add_iface" },
+        { "issues": [ "wifi24_name_issue", "wifi5_name_issue" ], "solution": "fix_name" },
+        { "issues": [ "wifi24_noise_issue", "wifi5_noise_issue" ], "solution": "reload" },
+        { "issues": [ "wifi24_not_defined", "wifi5_not_defined" ], "solution": "reload" }
+      ],
+      "default_solution": "nofix",
+      "scripts": {
+        "diagnose": "/usr/libexec/mkdector/wifi/mkcheckwifi",
+        "repair": "/usr/libexec/mkdector/wifi/mkrepairwifi"
+      }
+    }
+  ]
+}

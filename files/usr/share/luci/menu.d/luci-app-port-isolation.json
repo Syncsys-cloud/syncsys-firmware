@@ -1,0 +1,37 @@
+{
+	"admin/almalaki-app/port-isolation": {
+		"title": "MKPIS [مكافح اللوبات]",
+		"order": 65,
+		"action": {
+			"type": "firstchild"
+		},
+		"depends": {
+			"acl": [ "luci-app-port-isolation" ],
+			"uci": { "portisolation": true }
+		}
+	},
+	"admin/almalaki-app/port-isolation/settings": {
+		"title": "الإعدادات",
+		"order": 10,
+		"action": {
+			"type": "view",
+			"path": "portisolation/settings"
+		}
+	},
+	"admin/almalaki-app/port-isolation/monitor": {
+		"title": "المراقبة والسجل",
+		"order": 20,
+		"action": {
+			"type": "view",
+			"path": "portisolation/monitor"
+		}
+	},
+	"admin/almalaki-app/port-isolation/help": {
+		"title": "المساعدة",
+		"order": 30,
+		"action": {
+			"type": "view",
+			"path": "portisolation/help"
+		}
+	}
+}

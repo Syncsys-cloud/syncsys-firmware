@@ -1,0 +1,125 @@
+#!/bin/sh
+# mkdector - Broadband PPPoE + Firewall/NAT checks
+
+. /usr/share/libubox/jshn.sh 2>/dev/null
+
+UCI=/sbin/uci
+uci_get() { $UCI -q get "$1" 2>/dev/null; }
+uci_show() { $UCI -q show "$1" 2>/dev/null; }
+
+svc_state() {
+	local s="$1"
+	[ -x "/etc/init.d/$s" ] || { echo "missing"; return; }
+	/etc/init.d/$s status >/dev/null 2>&1 && { echo "running"; return; }
+	echo "stopped"
+}
+
+pppoe_up() {
+	ubus call network.interface.PPPoE status 2>/dev/null | jsonfilter -e '@.up' 2>/dev/null
+}
+
+main() {
+	json_init
+
+	json_add_object issues
+	json_add_boolean pppoe_missing 0
+	json_add_boolean pppoe_down 0
+	json_add_boolean firewall_stopped 0
+	json_add_boolean wan_zone_missing 0
+	json_add_boolean wan_zone_no_pppoe 0
+	json_add_boolean nat_disabled 0
+	json_add_boolean lan_to_wan_forward_missing 0
+	json_close_object
+
+	json_add_object facts
+	json_add_string mode_id "ap_broadband"
+
+	local proto fw_state up
+	proto="$(uci_get network.PPPoE.proto)"
+	[ "$proto" = "pppoe" ] || {
+		json_add_object issues
+		json_add_boolean pppoe_missing 1
+		json_close_object
+		json_close_object
+		json_dump
+		exit 0
+	}
+
+	up="$(pppoe_up)"
+	[ "$up" = "true" ] || [ "$up" = "1" ] || {
+		json_add_object issues
+		json_add_boolean pppoe_down 1
+		json_close_object
+	}
+
+	fw_state="$(svc_state firewall)"
+	[ "$fw_state" = "running" ] || {
+		json_add_object issues
+		json_add_boolean firewall_stopped 1
+		json_close_object
+	}
+
+	# firewall zone wan existence
+	local has_wan_zone=0 has_pppoe_in_wan=0 masq=0 has_fwd=0
+	if uci_show firewall | grep -q "=zone"; then
+		# check zone named wan
+		if uci_show firewall | grep -q "\.name='wan'"; then
+			has_wan_zone=1
+			# find section name of wan zone
+			local zsec
+			zsec="$(uci_show firewall | awk -F'[.=]' "\$0 ~ /=zone/ {sec=\$2} /\\.name='wan'/{print sec}")"
+			if [ -n "$zsec" ]; then
+				# network option may be list or string
+				local nets
+				nets="$(uci_get firewall.${zsec}.network)"
+				# also check list network
+				uci_show firewall | grep "firewall.${zsec}.network" | grep -q "PPPoE" && has_pppoe_in_wan=1
+				[ "$nets" = "PPPoE" ] && has_pppoe_in_wan=1
+				masq="$(uci_get firewall.${zsec}.masq)"
+				[ "$masq" = "1" ] && masq=1 || masq=0
+			fi
+		fi
+	fi
+
+	# forwarding lan->wan
+	if uci_show firewall | grep -q "=forwarding"; then
+		if uci_show firewall | grep -q "\.src='lan'" && uci_show firewall | grep -q "\.dest='wan'"; then
+			has_fwd=1
+		fi
+	fi
+
+	[ "$has_wan_zone" -eq 1 ] || {
+		json_add_object issues
+		json_add_boolean wan_zone_missing 1
+		json_close_object
+	}
+	[ "$has_pppoe_in_wan" -eq 1 ] || {
+		json_add_object issues
+		json_add_boolean wan_zone_no_pppoe 1
+		json_close_object
+	}
+	[ "$masq" -eq 1 ] || {
+		json_add_object issues
+		json_add_boolean nat_disabled 1
+		json_close_object
+	}
+	[ "$has_fwd" -eq 1 ] || {
+		json_add_object issues
+		json_add_boolean lan_to_wan_forward_missing 1
+		json_close_object
+	}
+
+	json_add_object services
+	json_add_string firewall "$fw_state"
+	json_close_object
+
+	json_add_object pppoe
+	json_add_string proto "$proto"
+	json_add_string up "${up:-}"
+	json_close_object
+
+	json_close_object
+	json_dump
+}
+
+main

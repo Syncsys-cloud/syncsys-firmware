@@ -1,0 +1,55 @@
+#!/bin/sh
+# mkdector - Wi-Fi WDS repair
+
+UCI=/sbin/uci
+uci_get() { $UCI -q get "$1" 2>/dev/null; }
+
+list_wifi_ifaces() {
+	$UCI -q show wireless 2>/dev/null | awk -F'[.=]' '/=wifi-iface/{print $2}'
+}
+
+get_mode_id() {
+	local f="/tmp/mkdector/topology.result.json"
+	if [ -r "$f" ] && command -v jsonfilter >/dev/null 2>&1; then
+		jsonfilter -i "$f" -e '@.facts.mode_id' 2>/dev/null
+		return
+	fi
+	echo ""
+}
+
+main() {
+	local mode_id ifaces sec wmode wds
+	mode_id="$(get_mode_id)"
+	case "$mode_id" in
+		ap_wds_tx|ap_wds_rx|ap_vlan_wds_tx|ap_vlan_wds_rx) : ;;
+		*) echo "[mkdector] skip: not a WDS mode: ${mode_id:-unknown}"; exit 0 ;;
+	esac
+
+	echo "[mkdector] repairing Wi-Fi WDS bindings (mode=$mode_id)"
+
+	ifaces="$(list_wifi_ifaces)"
+	for sec in $ifaces; do
+		wmode="$(uci_get "wireless.$sec.mode")"
+		wds="$(uci_get "wireless.$sec.wds")"
+
+		# WDS iface must be on lan
+		if [ "$wds" = "1" ] && { [ "$wmode" = "ap" ] || [ "$wmode" = "sta" ]; }; then
+			$UCI -q set wireless."$sec".network='lan'
+			continue
+		fi
+
+		# normal APs
+		if [ "$wmode" = "ap" ] && [ "$wds" != "1" ]; then
+			case "$mode_id" in
+				ap_vlan_wds_tx|ap_vlan_wds_rx) $UCI -q set wireless."$sec".network='vlan' ;;
+				ap_wds_tx|ap_wds_rx) $UCI -q set wireless."$sec".network='lan' ;;
+			esac
+		fi
+	done
+
+	$UCI -q commit wireless
+	wifi reload 2>/dev/null || true
+	echo "[mkdector] done"
+}
+
+main

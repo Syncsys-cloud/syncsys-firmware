@@ -1,0 +1,928 @@
+<!-- Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
+ AL-MALAKI OPEWNWRT TEAM < almalakiopenwrt@gmail.com>
+ Copyright (c) 2025-2026. All Rights Reserved. -->
+
+<%+header%>
+
+<style>
+/*
+ * MKPDC [درايفر كنترول] — ثيم الواجهة
+ * نفس لغة تصميم luci-app-wizard و luci-app-port-isolation:
+ * الأزرق الملكي + الذهبي، حاوية محدودة العرض، هيدر لاصق بشعار مربع،
+ * أزرار أيقونية مربعة، مسافات مضغوطة، فاتح/داكن.
+ */
+
+.mkdc-shell,
+.mkdc-shell *,
+.mkdc-shell *::before,
+.mkdc-shell *::after {
+	box-sizing: border-box;
+}
+
+.mkdc-shell {
+	--alm-bg: #eef1f6;
+	--alm-surface: #ffffff;
+	--alm-surface-2: #f6f8fb;
+	--alm-surface-3: #eceff4;
+	--alm-border: #dde3ec;
+	--alm-border-strong: #c6cfdd;
+	--alm-text: #1c2638;
+	--alm-text-2: #475168;
+	--alm-muted: #7a869b;
+	--alm-royal: #2f4bd6;
+	--alm-royal-strong: #2438ad;
+	--alm-royal-soft: #eaeefc;
+	--alm-royal-ring: rgba(47, 75, 214, 0.28);
+	--alm-gold: #c79325;
+	--alm-gold-soft: #f7eecf;
+	--alm-ok: #1f9d6b;
+	--alm-ok-soft: #e3f5ec;
+	--alm-warn: #c47a12;
+	--alm-warn-soft: #fbeed4;
+	--alm-danger: #cc3b46;
+	--alm-danger-soft: #fbe6e7;
+	--alm-shadow: 0 1px 2px rgba(20, 32, 60, 0.06), 0 8px 24px rgba(20, 32, 60, 0.07);
+	--alm-radius: 14px;
+	--alm-radius-sm: 9px;
+	--alm-font: "Segoe UI", Tahoma, Arial, system-ui, sans-serif;
+	--alm-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+	position: relative;
+	direction: rtl;
+	text-align: right;
+	max-width: 1024px;
+	width: 100%;
+	margin: 0 auto;
+	color: var(--alm-text);
+	background: var(--alm-bg);
+	border: 1px solid var(--alm-border);
+	border-radius: 10px;
+	font-family: var(--alm-font);
+	font-size: 15px;
+	line-height: 1.5;
+	overflow-x: clip;
+	overflow-y: visible;
+}
+
+.mkdc-shell.is-dark {
+	--alm-bg: #0d1320;
+	--alm-surface: #151d2d;
+	--alm-surface-2: #1a2334;
+	--alm-surface-3: #212c40;
+	--alm-border: #283449;
+	--alm-border-strong: #36465f;
+	--alm-text: #e8edf5;
+	--alm-text-2: #b3bed0;
+	--alm-muted: #7e8da4;
+	--alm-royal: #6f88f2;
+	--alm-royal-strong: #8aa0f7;
+	--alm-royal-soft: #1c2748;
+	--alm-royal-ring: rgba(111, 136, 242, 0.32);
+	--alm-gold: #e7bd56;
+	--alm-gold-soft: #2c2614;
+	--alm-ok: #38c08a;
+	--alm-ok-soft: #15301f;
+	--alm-warn: #e0a23f;
+	--alm-warn-soft: #2f2511;
+	--alm-danger: #f06b74;
+	--alm-danger-soft: #321a1d;
+	--alm-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.mkdc-shell button,
+.mkdc-shell input,
+.mkdc-shell select {
+	font: inherit;
+}
+
+.mkdc-shell svg {
+	flex: 0 0 auto;
+	display: block;
+}
+
+/* تحييد أنماط LuCI الافتراضية داخل الحاوية */
+.mkdc-shell h1,
+.mkdc-shell h2,
+.mkdc-shell h3,
+.mkdc-shell h4,
+.mkdc-shell h5 {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	color: var(--alm-text);
+	background: transparent;
+	font-family: inherit;
+}
+
+/* ================= الهيدر ================= */
+
+.mkdc-shell .mkdc-header {
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 60px;
+	padding: 8px 14px;
+	background: rgba(255, 255, 255, 0.92);
+	border-bottom: 1px solid var(--alm-border);
+	backdrop-filter: blur(10px);
+}
+
+.mkdc-shell .mkdc-header::after {
+	content: none !important;
+	display: none !important;
+}
+
+.mkdc-shell.is-dark .mkdc-header {
+	background: rgba(21, 29, 45, 0.92);
+}
+
+.mkdc-shell .mkdc-brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.mkdc-shell .mkdc-logo {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 42px;
+	height: 42px;
+	flex: 0 0 auto;
+	border-radius: 11px;
+	color: #fff;
+	background: linear-gradient(150deg, var(--alm-royal), var(--alm-royal-strong));
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15), 0 6px 16px var(--alm-royal-ring);
+}
+
+.mkdc-shell .mkdc-logo::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border: 1.5px solid var(--alm-gold);
+	border-radius: 11px;
+	opacity: 0.55;
+}
+
+.mkdc-shell .mkdc-brand-text {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.mkdc-shell .mkdc-brand-name {
+	overflow: hidden;
+	font-size: 16.5px;
+	font-weight: 800;
+	line-height: 1.2;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.mkdc-shell .mkdc-brand-name b {
+	color: var(--alm-gold);
+}
+
+.mkdc-shell .mkdc-brand-tag {
+	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+	margin-top: 3px;
+	padding: 1px 9px;
+	border: 1px solid var(--alm-border);
+	border-radius: 999px;
+	color: var(--alm-muted);
+	background: var(--alm-surface-2);
+	font-size: 11.5px;
+	line-height: 1.5;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.mkdc-shell .mkdc-header-actions {
+	display: flex;
+	align-items: center;
+	flex: 0 0 auto;
+	gap: 7px;
+}
+
+/* ============ الأزرار الأيقونية المربعة ============ */
+
+.mkdc-shell .mkdc-ibtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid var(--alm-border-strong);
+	border-radius: var(--alm-radius-sm);
+	color: var(--alm-text-2);
+	background: var(--alm-surface);
+	cursor: pointer;
+	transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease,
+		box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.mkdc-shell .mkdc-ibtn:hover {
+	border-color: var(--alm-royal);
+	color: var(--alm-royal);
+	background: var(--alm-royal-soft);
+	transform: translateY(-1px);
+}
+
+.mkdc-shell .mkdc-ibtn:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px var(--alm-royal-ring);
+}
+
+/* ============ أزرار نصية ============ */
+
+.mkdc-shell .mkdc-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 9px 16px;
+	border: 1px solid var(--alm-border-strong);
+	border-radius: var(--alm-radius-sm);
+	color: var(--alm-text-2);
+	background: var(--alm-surface);
+	font-size: 13.5px;
+	font-weight: 700;
+	line-height: 1;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease,
+		box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.mkdc-shell .mkdc-btn:hover {
+	border-color: var(--alm-royal);
+	color: var(--alm-royal);
+	background: var(--alm-royal-soft);
+}
+
+.mkdc-shell .mkdc-btn:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px var(--alm-royal-ring);
+}
+
+.mkdc-shell .mkdc-btn-primary {
+	border-color: transparent;
+	color: #fff;
+	background: linear-gradient(160deg, var(--alm-royal), var(--alm-royal-strong));
+	box-shadow: 0 4px 14px var(--alm-royal-ring);
+}
+
+.mkdc-shell .mkdc-btn-primary:hover {
+	color: #fff;
+	background: linear-gradient(160deg, var(--alm-royal-strong), var(--alm-royal-strong));
+	transform: translateY(-1px);
+}
+
+.mkdc-shell .mkdc-btn-ghost {
+	background: transparent;
+	border-color: var(--alm-border);
+}
+
+.mkdc-shell .mkdc-btn-ok:hover {
+	border-color: var(--alm-ok);
+	color: var(--alm-ok);
+	background: var(--alm-ok-soft);
+}
+
+.mkdc-shell .mkdc-btn-warn:hover {
+	border-color: var(--alm-warn);
+	color: var(--alm-warn);
+	background: var(--alm-warn-soft);
+}
+
+/* ================= جسم الصفحة ================= */
+
+.mkdc-shell .mkdc-content {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 14px;
+	animation: mkdc-fade 0.35s ease both;
+}
+
+@keyframes mkdc-fade {
+	from { opacity: 0; transform: translateY(6px); }
+	to   { opacity: 1; transform: none; }
+}
+
+/* ================= اللوحات ================= */
+
+.mkdc-shell .mkdc-panel {
+	padding: 12px;
+	border: 1px solid var(--alm-border);
+	border-radius: var(--alm-radius);
+	background: var(--alm-surface);
+	box-shadow: var(--alm-shadow);
+}
+
+.mkdc-shell .mkdc-panel > h3 {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	margin: 0 0 10px;
+	padding-bottom: 8px;
+	border-bottom: 1px dashed var(--alm-border);
+	color: var(--alm-text);
+	font-size: 13.5px;
+	font-weight: 800;
+}
+
+.mkdc-shell .mkdc-panel > h3::before {
+	content: "";
+	width: 8px;
+	height: 8px;
+	border-radius: 3px;
+	background: linear-gradient(150deg, var(--alm-royal), var(--alm-royal-strong));
+	box-shadow: 0 0 0 1.5px var(--alm-gold) inset;
+}
+
+/* ================= الحقول ================= */
+
+.mkdc-shell .mkdc-fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 10px 14px;
+}
+
+.mkdc-shell .mkdc-field {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px 12px;
+	min-width: 0;
+}
+
+.mkdc-shell .mkdc-flabel {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	min-width: 120px;
+	color: var(--alm-text);
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.35;
+}
+
+.mkdc-shell .mkdc-flabel svg {
+	color: var(--alm-royal);
+}
+
+.mkdc-shell .mkdc-select {
+	flex: 1 1 170px;
+	min-width: 170px;
+	max-width: 300px;
+	min-height: 42px;
+	padding: 9px 12px;
+	border: 1.5px solid var(--alm-border-strong);
+	border-radius: var(--alm-radius-sm);
+	color: var(--alm-text);
+	background: var(--alm-surface);
+	direction: ltr;
+	text-align: left;
+	font-family: var(--alm-mono);
+	font-size: 13.5px;
+	transition: all 0.15s ease;
+}
+
+.mkdc-shell .mkdc-select:focus {
+	outline: none;
+	border-color: var(--alm-royal);
+	box-shadow: 0 0 0 3px var(--alm-royal-ring);
+}
+
+/* ================= سطر الحالة ================= */
+
+.mkdc-shell .mkdc-line {
+	margin: 0;
+	padding: 9px 12px;
+	overflow-x: auto;
+	border: 1px solid var(--alm-border);
+	border-radius: var(--alm-radius-sm);
+	background: var(--alm-surface-2);
+	color: var(--alm-text-2);
+	direction: ltr;
+	text-align: left;
+	font-family: var(--alm-mono);
+	font-size: 11.5px;
+	line-height: 1.55;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.mkdc-shell.is-dark .mkdc-line {
+	background: #101724;
+}
+
+.mkdc-shell .mkdc-line-label {
+	display: block;
+	margin: 10px 0 5px;
+	color: var(--alm-muted);
+	font-size: 11.5px;
+	font-weight: 800;
+	letter-spacing: 0.3px;
+}
+
+/* ================= شريط الإجراءات ================= */
+
+.mkdc-shell .mkdc-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-top: 12px;
+	padding-top: 11px;
+	border-top: 1px dashed var(--alm-border);
+}
+
+/* ================= التنبيهات ================= */
+
+.mkdc-shell .mkdc-note {
+	display: flex;
+	align-items: flex-start;
+	gap: 9px;
+	padding: 10px 12px;
+	border: 1px solid var(--alm-border);
+	border-radius: var(--alm-radius-sm);
+	color: var(--alm-text);
+	background: var(--alm-surface);
+	font-size: 13px;
+	line-height: 1.65;
+}
+
+.mkdc-shell .mkdc-note svg {
+	margin-top: 2px;
+}
+
+.mkdc-shell .mkdc-note strong {
+	display: block;
+	margin-bottom: 2px;
+}
+
+.mkdc-shell .mkdc-note.is-info {
+	border-color: var(--alm-royal-soft);
+	background: var(--alm-royal-soft);
+}
+
+.mkdc-shell .mkdc-note.is-info svg { color: var(--alm-royal); }
+
+.mkdc-shell .mkdc-note.is-ok {
+	border-color: var(--alm-ok);
+	background: var(--alm-ok-soft);
+}
+
+.mkdc-shell .mkdc-note.is-ok svg { color: var(--alm-ok); }
+
+.mkdc-shell .mkdc-note.is-warn {
+	border-color: var(--alm-warn);
+	background: var(--alm-warn-soft);
+}
+
+.mkdc-shell .mkdc-note.is-warn svg { color: var(--alm-warn); }
+
+.mkdc-shell .mkdc-note.is-danger {
+	border-color: var(--alm-danger);
+	background: var(--alm-danger-soft);
+}
+
+.mkdc-shell .mkdc-note.is-danger svg { color: var(--alm-danger); }
+
+/* ================= التذييل ================= */
+
+.mkdc-shell .mkdc-footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 10px 14px;
+	border-top: 1px solid var(--alm-border);
+	color: var(--alm-muted);
+	font-size: 11.5px;
+	text-align: center;
+}
+
+/* ================= النافذة المنبثقة ================= */
+
+.mkdc-shell .mkdc-modal-scrim {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background: rgba(11, 17, 30, 0.55);
+	backdrop-filter: blur(3px);
+}
+
+.mkdc-shell .mkdc-modal-scrim.is-visible {
+	display: flex;
+	animation: mkdc-fade 0.2s ease both;
+}
+
+.mkdc-shell .mkdc-modal {
+	display: flex;
+	flex-direction: column;
+	width: min(560px, 100%);
+	max-height: 86vh;
+	border: 1px solid var(--alm-border-strong);
+	border-radius: var(--alm-radius);
+	background: var(--alm-bg);
+	box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+	overflow: hidden;
+	animation: mkdc-pop 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes mkdc-pop {
+	from { opacity: 0; transform: scale(0.94) translateY(12px); }
+	to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mkdc-shell .mkdc-modal-head {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--alm-border);
+	background: var(--alm-surface);
+	font-size: 14.5px;
+	font-weight: 800;
+}
+
+.mkdc-shell .mkdc-modal-head svg {
+	color: var(--alm-royal);
+	width: 20px;
+	height: 20px;
+}
+
+.mkdc-shell .mkdc-modal-body {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 14px;
+	overflow: auto;
+	color: var(--alm-text-2);
+	font-size: 13.5px;
+	line-height: 1.7;
+}
+
+.mkdc-shell .mkdc-modal-body p {
+	margin: 0;
+}
+
+.mkdc-shell .mkdc-modal-vals {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.mkdc-shell .mkdc-chip {
+	display: inline-block;
+	padding: 3px 10px;
+	border: 1px solid var(--alm-border);
+	border-radius: 999px;
+	background: var(--alm-surface-2);
+	color: var(--alm-text-2);
+	font-size: 12px;
+	font-weight: 700;
+	direction: ltr;
+	font-family: var(--alm-mono);
+}
+
+.mkdc-shell .mkdc-modal-foot {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	gap: 8px;
+	padding: 11px 14px;
+	border-top: 1px solid var(--alm-border);
+	background: var(--alm-surface);
+}
+
+/* ================= استجابة الشاشات الصغيرة ================= */
+
+@media (max-width: 680px) {
+	.mkdc-shell .mkdc-content {
+		padding: 10px;
+	}
+
+	.mkdc-shell .mkdc-header {
+		padding-inline: 10px;
+	}
+
+	.mkdc-shell .mkdc-brand-tag {
+		display: none;
+	}
+
+	.mkdc-shell .mkdc-fields {
+		grid-template-columns: 1fr;
+	}
+
+	.mkdc-shell .mkdc-select {
+		max-width: none;
+	}
+
+	.mkdc-shell .mkdc-actions .mkdc-btn {
+		flex: 1 1 auto;
+	}
+
+	.mkdc-shell .mkdc-modal-foot .mkdc-btn {
+		flex: 1 1 45%;
+	}
+}
+</style>
+
+<div class="mkdc-shell" id="mkdcShell">
+
+	<header class="mkdc-header">
+		<div class="mkdc-brand">
+			<div class="mkdc-logo">
+				<!-- أيقونة بث -->
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/>
+					<path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/>
+					<circle cx="12" cy="12" r="2"/>
+					<path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/>
+					<path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/>
+				</svg>
+			</div>
+			<div class="mkdc-brand-text">
+				<div class="mkdc-brand-name">MKPDC <b>درايفر كنترول</b></div>
+				<span class="mkdc-brand-tag">التحكم المتقدم بطاقة بث الواي فاي — من فريق الملكي اوبن ورت</span>
+			</div>
+		</div>
+		<div class="mkdc-header-actions">
+			<button type="button" class="mkdc-ibtn" id="mkdcThemeBtn" title="تبديل المظهر" aria-label="تبديل المظهر"></button>
+		</div>
+	</header>
+
+	<div class="mkdc-content">
+
+		<% if err then %>
+		<div class="mkdc-note is-danger">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+			</svg>
+			<div><strong>خطأ</strong><%= err %></div>
+		</div>
+		<% end %>
+
+		<% if msg then %>
+		<div class="mkdc-note is-ok">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+			</svg>
+			<div><strong>تم</strong><%= msg %></div>
+		</div>
+		<% end %>
+
+		<div class="mkdc-note is-info">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+			</svg>
+			<div>هذه الأداة موجهة للمطورين وأصحاب الخبرة ولأغراض الاختبار والتشخيص فقط، وزيادة طاقة البث ضمن الحدود الآمنة.</div>
+		</div>
+
+		<form id="txpwrForm" method="post" action="<%=REQUEST_URI%>" onsubmit="return onBeforeSubmit(event);">
+
+			<!-- CSRF token via L.env.token -->
+			<input type="hidden" name="token" id="csrf_token" value="" />
+			<input type="hidden" name="apply_action" id="apply_action" value="save_only" />
+			<input type="hidden" name="save" value="1" />
+
+			<div class="mkdc-panel">
+				<h3>طاقة البث اللاسلكي</h3>
+
+				<div class="mkdc-fields">
+					<div class="mkdc-field">
+						<label class="mkdc-flabel" for="pow7915_2g">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+							</svg>
+							2.4GHz [طاقة البث]
+						</label>
+						<select class="mkdc-select" name="pow7915_2g" id="pow7915_2g">
+							<option value="0" <%= (pow7915_2g=="0") and 'selected="selected"' or '' %>>[26] الإفتراضي✅</option>
+							<option value="1" <%= (pow7915_2g=="1") and 'selected="selected"' or '' %>>+1 = [27] dBm ✅</option>
+							<option value="2" <%= (pow7915_2g=="2") and 'selected="selected"' or '' %>>+2 = [28] dBm ✅</option>
+							<option value="3" <%= (pow7915_2g=="3") and 'selected="selected"' or '' %>>+3 = [29] dBm ✅</option>
+							<option value="4" <%= (pow7915_2g=="4") and 'selected="selected"' or '' %>>+4 = [30] dBm 🆖</option>
+							<option value="5" <%= (pow7915_2g=="5") and 'selected="selected"' or '' %>>+5 = [31] dBm 🆖</option>
+							<option value="6" <%= (pow7915_2g=="6") and 'selected="selected"' or '' %>>+6 = [32] dBm 🆖</option>
+							<option value="7" <%= (pow7915_2g=="7") and 'selected="selected"' or '' %>>+7 = [33] dBm ⚠️</option>
+							<option value="8" <%= (pow7915_2g=="8") and 'selected="selected"' or '' %>>+8 = [34] dBm ⚠️</option>
+							<option value="9" <%= (pow7915_2g=="9") and 'selected="selected"' or '' %>>+9 = [35] dBm ⚠️</option>
+							<option value="10" <%= (pow7915_2g=="10") and 'selected="selected"' or '' %>>+10 = [36] dBm ⚠️</option>
+							<option value="11" <%= (pow7915_2g=="11") and 'selected="selected"' or '' %>>+11 = [37] dBm 🆘</option>
+							<option value="12" <%= (pow7915_2g=="12") and 'selected="selected"' or '' %>>+12 = [38] dBm 🆘</option>
+							<option value="13" <%= (pow7915_2g=="13") and 'selected="selected"' or '' %>>+13 = [39] dBm 🆘</option>
+							<option value="14" <%= (pow7915_2g=="14") and 'selected="selected"' or '' %>>+14 = [40] dBm 🆘</option>
+						</select>
+					</div>
+
+					<div class="mkdc-field">
+						<label class="mkdc-flabel" for="pow7915_5g">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+							</svg>
+							5GHz [طاقة البث]
+						</label>
+						<select class="mkdc-select" name="pow7915_5g" id="pow7915_5g">
+							<option value="0" <%= (pow7915_5g=="0") and 'selected="selected"' or '' %>>[24] الإفتراضي✅</option>
+							<option value="1" <%= (pow7915_5g=="1") and 'selected="selected"' or '' %>>+1 = [25] dBm ✅</option>
+							<option value="2" <%= (pow7915_5g=="2") and 'selected="selected"' or '' %>>+2 = [26] dBm ✅</option>
+							<option value="3" <%= (pow7915_5g=="3") and 'selected="selected"' or '' %>>+3 = [27] dBm ✅</option>
+							<option value="4" <%= (pow7915_5g=="4") and 'selected="selected"' or '' %>>+4 = [28] dBm 🆖</option>
+							<option value="5" <%= (pow7915_5g=="5") and 'selected="selected"' or '' %>>+5 = [29] dBm 🆖</option>
+							<option value="6" <%= (pow7915_5g=="6") and 'selected="selected"' or '' %>>+6 = [30] dBm ⚠️</option>
+							<option value="7" <%= (pow7915_5g=="7") and 'selected="selected"' or '' %>>+7 = [31] dBm ⚠️</option>
+							<option value="8" <%= (pow7915_5g=="8") and 'selected="selected"' or '' %>>+8 = [32] dBm ⚠️</option>
+							<option value="9" <%= (pow7915_5g=="9") and 'selected="selected"' or '' %>>+9 = [33] dBm ⚠️</option>
+							<option value="10" <%= (pow7915_5g=="10") and 'selected="selected"' or '' %>>+10 = [34] dBm 🆘</option>
+							<option value="11" <%= (pow7915_5g=="11") and 'selected="selected"' or '' %>>+11 = [35] dBm 🆘</option>
+							<option value="12" <%= (pow7915_5g=="12") and 'selected="selected"' or '' %>>+12 = [36] dBm 🆘</option>
+							<option value="13" <%= (pow7915_5g=="13") and 'selected="selected"' or '' %>>+13 = [37] dBm 🆘</option>
+							<option value="14" <%= (pow7915_5g=="14") and 'selected="selected"' or '' %>>+14 = [38] dBm 🆘</option>
+						</select>
+					</div>
+				</div>
+<!-- 
+				<span class="mkdc-line-label">سطر الإعداد الحالي</span>
+				<pre class="mkdc-line"><%= line %></pre> -->
+
+				<div class="mkdc-actions">
+					<button class="mkdc-btn mkdc-btn-primary" type="submit" name="save" value="1">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+						</svg>
+						حفظ وتطبيق التغيرات
+					</button>
+					<button class="mkdc-btn mkdc-btn-ghost" type="button" onclick="resetToCurrent()">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+						</svg>
+						إرجاع للقيم الحالية
+					</button>
+				</div>
+			</div>
+		</form>
+
+		<div class="mkdc-note is-warn">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+			</svg>
+			<div>
+				<strong>تحذير وإخلاء مسؤولية</strong>
+				إستخدم هذة الأداة في رفع قوة البث ضمن الحدود الأمنة وإعلم ان زيادة طاقة البث قد تتجاوز حدود الأنظمة/القوانين المعتمدة في بلدك،
+				وقد تؤدي إلى تشويش أعلى، تدهور الأداء، عدم استقرار الاتصال، ارتفاع الحرارة، أو تقليل العمر الافتراضي لمكوّنات الإرسال.
+				باستخدامك لهذه الأداة فأنت تتحمل المسؤولية الكاملة. <b>فريق الملكي</b> غير مسؤول عن أي ضرر أو مخالفة ناتجة عن الإعدادات.
+			</div>
+		</div>
+
+	</div>
+
+	<footer class="mkdc-footer">
+		Copyright(c) 2026,2027 AL-MALAKI OPEWNWRT TEAM - جميع الحقوق محفوظة للفريق الملكي اوبن ورت
+	</footer>
+
+	<!-- نافذة تأكيد التغييرات -->
+	<div class="mkdc-modal-scrim" id="amModal">
+		<div class="mkdc-modal" role="dialog" aria-modal="true" aria-labelledby="amModalTitle">
+			<div class="mkdc-modal-head">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M12 3l7 3v5c0 4.4-3 8.4-7 10-4-1.6-7-5.6-7-10V6l7-3z"/><polyline points="9 12 11 14 15 10"/>
+				</svg>
+				<span id="amModalTitle">تأكيد التغييرات</span>
+			</div>
+			<div class="mkdc-modal-body">
+				<p>سيتم تغيير قيم طاقة البث إلى:</p>
+				<div class="mkdc-modal-vals">
+					<span class="mkdc-chip" id="amModalV2"></span>
+					<span class="mkdc-chip" id="amModalV5"></span>
+				</div>
+				<p>اختر طريقة التطبيق:</p>
+			</div>
+			<div class="mkdc-modal-foot">
+				<button class="mkdc-btn mkdc-btn-primary" type="button" onclick="doAction('save_reload')">حفظ + تطبيق الآن</button>
+				<button class="mkdc-btn mkdc-btn-ok" type="button" onclick="doAction('save_only')">حفظ فقط</button>
+				<button class="mkdc-btn mkdc-btn-warn" type="button" onclick="doAction('save_reboot')">حفظ + إعادة تشغيل</button>
+				<button class="mkdc-btn mkdc-btn-ghost" type="button" onclick="closeModal()">إلغاء</button>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+	/* ============ CSRF token via L.env.token ============ */
+	(function() {
+		function fillToken() {
+			var el = document.getElementById('csrf_token');
+			if (!el) return;
+			if (el.value) return;
+			if (window.L && L.env && L.env.token) el.value = L.env.token;
+		}
+		fillToken();
+		document.addEventListener('DOMContentLoaded', fillToken);
+	})();
+
+	/* ============ الثيم فاتح/داكن (نفس نمط بقية تطبيقات الملكي) ============ */
+	(function() {
+		var THEME_KEY = 'alm-mkdc-theme';
+		var shell = document.getElementById('mkdcShell');
+		var btn   = document.getElementById('mkdcThemeBtn');
+
+		var SUN  = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+		var MOON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+		function getTheme() {
+			try { return window.localStorage.getItem(THEME_KEY) || 'dark'; }
+			catch (e) { return 'dark'; }
+		}
+
+		function setTheme(theme) {
+			try { window.localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+			shell.classList.toggle('is-dark', theme === 'dark');
+			btn.innerHTML = (theme === 'dark') ? SUN : MOON;
+			btn.title = (theme === 'dark') ? 'الوضع الفاتح' : 'الوضع الداكن';
+		}
+
+		btn.addEventListener('click', function(ev) {
+			ev.preventDefault();
+			setTheme(shell.classList.contains('is-dark') ? 'light' : 'dark');
+		});
+
+		setTheme(getTheme());
+	})();
+
+	/* ============ منطق النموذج (كما هو) ============ */
+	// initial values from server
+	const initial2g = "<%= pow7915_2g %>";
+	const initial5g = "<%= pow7915_5g %>";
+
+	function resetToCurrent() {
+		document.getElementById("pow7915_2g").value = initial2g;
+		document.getElementById("pow7915_5g").value = initial5g;
+	}
+
+	function onBeforeSubmit(ev) {
+		// always ensure token filled
+		if (window.L && L.env && L.env.token) {
+			const t = document.getElementById("csrf_token");
+			if (t) t.value = L.env.token;
+		}
+
+		const v2 = document.getElementById("pow7915_2g").value;
+		const v5 = document.getElementById("pow7915_5g").value;
+
+		// no change => block submit + small alert
+		if (v2 === initial2g && v5 === initial5g) {
+			ev.preventDefault();
+			alert("لا يوجد أي تغيير لحفظه.");
+			return false;
+		}
+
+		// show modal instead of submitting directly
+		ev.preventDefault();
+		openModal(v2, v5);
+		return false;
+	}
+
+	function openModal(v2, v5) {
+		document.getElementById("amModalV2").textContent = "2.4GHz = +" + v2;
+		document.getElementById("amModalV5").textContent = "5GHz = +" + v5;
+		document.getElementById("amModal").classList.add("is-visible");
+	}
+
+	function closeModal() {
+		document.getElementById("amModal").classList.remove("is-visible");
+	}
+
+	document.addEventListener("keydown", function(ev) {
+		if (ev.key === "Escape") closeModal();
+	});
+
+	document.getElementById("amModal").addEventListener("click", function(ev) {
+		if (ev.target === this) closeModal();
+	});
+
+	function doAction(action) {
+		document.getElementById("apply_action").value = action;
+		closeModal();
+		document.getElementById("txpwrForm").submit();
+	}
+</script>
+
+<%+footer%>

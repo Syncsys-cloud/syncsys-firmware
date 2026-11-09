@@ -1,0 +1,142 @@
+#!/bin/sh
+# mkdector - baseline checks for common AP modes
+
+. /usr/share/libubox/jshn.sh 2>/dev/null
+
+UCI="/sbin/uci"
+REG_PROFILES="/usr/libexec/mkdector/baseline/profiles.json"
+RUNDIR="/tmp/mkdector"
+
+uci_get() { $UCI -q get "$1" 2>/dev/null; }
+uci_has_section() { $UCI -q show "$1" >/dev/null 2>&1; }
+
+svc_state() {
+	local s="$1"
+	[ -x "/etc/init.d/$s" ] || { echo "missing"; return; }
+	/etc/init.d/$s status >/dev/null 2>&1 && { echo "running"; return; }
+	echo "stopped"
+}
+
+detect_mode_id() {
+	# Prefer cached topology result if present
+	local rf="$RUNDIR/topology.result.json"
+	if [ -s "$rf" ] && command -v jsonfilter >/dev/null 2>&1; then
+		local m
+		m="$(jsonfilter -i "$rf" -e '@.facts.mode_id' 2>/dev/null)"
+		[ -n "$m" ] && { echo "$m"; return; }
+	fi
+	# Fallback: invoke topology detector if available
+	if [ -x /usr/libexec/mkdector/topology/mkchecktopology ]; then
+		/usr/libexec/mkdector/topology/mkchecktopology >"$RUNDIR/topology.result.json" 2>/dev/null || true
+		if [ -s "$RUNDIR/topology.result.json" ] && command -v jsonfilter >/dev/null 2>&1; then
+			local m2
+			m2="$(jsonfilter -i "$RUNDIR/topology.result.json" -e '@.facts.mode_id' 2>/dev/null)"
+			[ -n "$m2" ] && { echo "$m2"; return; }
+		fi
+	fi
+	echo "ap"
+}
+
+profile_expected() {
+	# profile_expected <mode> <path>
+	# path examples:
+	#   services.dnsmasq
+	#   network.wan
+	local mode="$1" path="$2"
+	[ -r "$REG_PROFILES" ] || { echo ""; return; }
+	if command -v jsonfilter >/dev/null 2>&1; then
+		jsonfilter -i "$REG_PROFILES" -e "@.modes.$mode.$path" 2>/dev/null
+	fi
+}
+
+main() {
+	local mode_id exp
+	mode_id="$(detect_mode_id)"
+
+	# current states
+	local firewall_state dnsmasq_state odhcpd_state
+	firewall_state="$(svc_state firewall)"
+	dnsmasq_state="$(svc_state dnsmasq)"
+	odhcpd_state="$(svc_state odhcpd)"
+	local wan_present wan6_present
+	wan_present=0; wan6_present=0
+	uci_has_section network.wan && wan_present=1
+	uci_has_section network.wan6 && wan6_present=1
+	local dhcp_ignore
+	dhcp_ignore="$(uci_get dhcp.lan.ignore)"
+
+	# expected states for this mode (from profiles.json)
+	local exp_firewall exp_dnsmasq exp_odhcpd exp_wan exp_wan6 exp_dhcp
+	exp_firewall="$(profile_expected "$mode_id" "services.firewall")"
+	exp_dnsmasq="$(profile_expected "$mode_id" "services.dnsmasq")"
+	exp_odhcpd="$(profile_expected "$mode_id" "services.odhcpd")"
+	exp_wan="$(profile_expected "$mode_id" "network.wan")"
+	exp_wan6="$(profile_expected "$mode_id" "network.wan6")"
+	exp_dhcp="$(profile_expected "$mode_id" "network.dhcp")"
+
+	# issues map
+	json_init
+	json_add_object issues
+	local i
+	# default all false
+	for i in \
+		wan_present wan6_present \
+		firewall_unexpected dnsmasq_unexpected odhcpd_unexpected \
+		dhcp_enabled \
+		profiles_missing; do
+		json_add_boolean "$i" 0
+	done
+
+	[ -r "$REG_PROFILES" ] || json_add_boolean profiles_missing 1
+
+	# wan expectations
+	if [ "$exp_wan" = "absent" ] && [ "$wan_present" -eq 1 ]; then
+		json_add_boolean wan_present 1
+	fi
+	if [ "$exp_wan6" = "absent" ] && [ "$wan6_present" -eq 1 ]; then
+		json_add_boolean wan6_present 1
+	fi
+
+	# services expectations
+	if [ -n "$exp_firewall" ] && [ "$exp_firewall" != "any" ] && [ "$exp_firewall" != "$firewall_state" ]; then
+		json_add_boolean firewall_unexpected 1
+	fi
+	if [ -n "$exp_dnsmasq" ] && [ "$exp_dnsmasq" != "$dnsmasq_state" ]; then
+		json_add_boolean dnsmasq_unexpected 1
+	fi
+	if [ -n "$exp_odhcpd" ] && [ "$exp_odhcpd" != "$odhcpd_state" ]; then
+		json_add_boolean odhcpd_unexpected 1
+	fi
+
+	# DHCP expectation (for your AP templates: dhcp stopped => dhcp.lan.ignore should be 1)
+	if [ "$exp_dhcp" = "stopped" ]; then
+		[ "$dhcp_ignore" = "1" ] || json_add_boolean dhcp_enabled 1
+	fi
+
+	json_close_object
+
+	# facts
+	json_add_object facts
+	json_add_string mode_id "$mode_id"
+	json_add_object current
+	json_add_string firewall "$firewall_state"
+	json_add_string dnsmasq "$dnsmasq_state"
+	json_add_string odhcpd "$odhcpd_state"
+	json_add_boolean wan_present "$wan_present"
+	json_add_boolean wan6_present "$wan6_present"
+	json_add_string dhcp_lan_ignore "${dhcp_ignore:-}"
+	json_close_object
+	json_add_object expected
+	json_add_string firewall "${exp_firewall:-}"
+	json_add_string dnsmasq "${exp_dnsmasq:-}"
+	json_add_string odhcpd "${exp_odhcpd:-}"
+	json_add_string wan "${exp_wan:-}"
+	json_add_string wan6 "${exp_wan6:-}"
+	json_add_string dhcp "${exp_dhcp:-}"
+	json_close_object
+	json_close_object
+
+	json_dump
+}
+
+main

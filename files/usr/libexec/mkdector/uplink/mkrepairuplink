@@ -1,0 +1,14 @@
+#!/bin/sh
+# mkdector - Uplink repair (safe)
+
+mode_id=""
+if [ -r /tmp/mkdector/topology.result.json ] && command -v jsonfilter >/dev/null 2>&1; then
+	mode_id="$(jsonfilter -i /tmp/mkdector/topology.result.json -e '@.facts.mode_id' 2>/dev/null)"
+fi
+
+echo "[mkdector] uplink repair (mode=${mode_id:-unknown})"
+
+# Safe for all modes: reload network; do not force-enable services here
+/etc/init.d/network reload 2>/dev/null || /etc/init.d/network restart 2>/dev/null || true
+
+echo "[mkdector] done"

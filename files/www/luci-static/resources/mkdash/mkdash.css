@@ -1,0 +1,535 @@
+.mkdash-wrap {font-family: system-ui; padding: 8px 0; position: relative; }
+
+.mkdash-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.mkdash-card {
+  background: var(--background, #fff);
+  border: 1px solid var(--border-color, rgba(0,0,0,.08));
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  padding: 5px 14px 5px 14px;
+}
+
+.mkdash-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 5px;
+}
+
+.mkdash-kpis { display: flex; justify-content: space-between; gap: 10px; margin: 8px 0 10px; }
+.mkdash-kpi { display: flex; font-size: 12px; opacity: .9; }
+.mkdash-kpi b { font-size: 14px; display: block; }
+
+.mkdash-progress {
+  height: 10px;
+  background: rgba(0,0,0,.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mkdash-progress > div {
+  height: 100%;
+  width: 0%;
+  transition: width .25s ease;
+  background: linear-gradient(90deg, rgba(0,136,255,.9), rgba(0,200,160,.9));
+}
+
+.mkdash-sub {
+  direction: rtl;
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: .9;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mkdash-spark {
+  margin-top: 10px;
+  width: 100%;
+  height: 38px;
+  background: rgba(0,0,0,.04);
+  border-radius: 10px;
+  overflow: hidden;
+  stroke: rgba(0,136,255,.95);
+}
+.mkdash-spark svg { width: 100%; height: 100%; display: block; }
+.mkdash-spark polyline {
+  fill: none;
+  stroke-width: 2;
+}
+.mkdash-spark .mkdash-spark-rx { stroke: rgba(255, 47, 0, 0.95); }
+.mkdash-spark .mkdash-spark-tx { stroke: rgba(0,136,255,.95); }
+
+.mkdash-details {
+  margin-top: 14px;
+}
+
+.mkdash-details details {
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: rgba(0,0,0,.02);
+}
+.mkdash-details summary { cursor: pointer; font-weight: 700; }
+.mkdash-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12px; }
+.mkdash-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.mkdash-table td, .mkdash-table th { padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,.08); font-size: 12px; }
+.mkdash-right { text-align: right; }
+/* MKDash: processes */
+.mkdash-proc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.mkdash-proc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.mkdash-proc-actions .cbi-button {
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+/* MKDash: Level-2 sections + Level-3 cards */
+.mkdash-l2-container { display: flex; flex-direction: column; gap: 14px; }
+
+.mkdash-l2 {
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px;
+  background: rgba(0,0,0,.01);
+  padding: 10px;
+}
+
+.mkdash-l2head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.mkdash-l2body { }
+
+.mkdash-collapsed .mkdash-l2body { display: none; }
+
+.mkdash-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 730;
+}
+
+.mkdash-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: 8px;
+}
+.mkdash-icon img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.mkdash-ic-res { background: rgba(0,136,255,.18); }
+.mkdash-ic-net { background: rgba(0,200,160,.18); }
+.mkdash-ic-sys { background: rgba(160,0,255,.18); }
+.mkdash-ic-cpu { background: rgba(255,136,0,.18); }
+.mkdash-ic-ram { background: rgba(0,136,255,.18); }
+.mkdash-ic-disk { background: rgba(0,0,0,.10); }
+.mkdash-ic-stat { background: rgba(0,200,160,.18); }
+.mkdash-ic-clients { background: rgba(0,136,255,.18); }
+.mkdash-ic-ports { background: rgba(255,0,120,.14); }
+.mkdash-ic-info { background: rgba(160,0,255,.18); }
+.mkdash-ic-time { background: rgba(0,200,160,.18); }
+
+.mkdash-cardhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.mkdash-head-actions { display: inline-flex; gap: 6px; align-items: center; }
+
+.mkdash-btn {
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(0,0,0,.02);
+  border-radius: 10px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.mkdash-handle { user-select: none; cursor: grab; padding: 2px 6px; border-radius: 10px; border: 1px dashed rgba(0,0,0,.18); background: rgba(0,0,0,.02); }
+.mkdash-handle:active { cursor: grabbing; }
+
+.mkdash-l3 { }
+
+.mkdash-card--wrap { position: relative; padding-top: 5px; padding-bottom: 5px; }
+
+.mkdash-cardinner { }
+
+.mkdash-toolbar {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .15s ease, transform .15s ease;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.92);
+  padding: 8px 10px;
+}
+
+.mkdash-card--wrap:hover .mkdash-toolbar {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mkdash-toolbar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mkdash-toolbar-label { font-size: 12px; opacity: .8; }
+.mkdash-refresh { min-width: 110px; padding: 4px; margin: 0px 2px 0px 2px;}
+.mkdash-refresh-custom { width: 90px; display: none; }
+.mkdash-hide { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; opacity: .9; }
+
+/* Drag feedback */
+.mkdash-dragging { opacity: .45; }
+
+/* Maximize */
+.mkdash-l3.mkdash-max,
+.mkdash-l2.mkdash-max {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1200px, calc(100% - 24px));
+  height: min(820px, calc(100% - 90px));
+  z-index: 9999;
+  overflow: auto;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 18px 60px rgba(0,0,0,.22);
+  border-radius: 16px;
+}
+
+/* Ports row */
+.mkdash-ports-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 6px 2px 2px;
+}
+
+.mkdash-portbox {
+  min-width: 105px;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 10px;
+  padding: 7px;
+  background: rgba(0,0,0,.02);
+  width: -webkit-fill-available;
+}
+
+.mkdash-port-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+.mkdash-port-name { font-weight: 800; }
+.mkdash-port-state { font-size: 14px; opacity: .85; }
+.mkdash-port-state.up { color: rgba(0,150,90,1); }
+.mkdash-port-state.down { color: rgba(200,60,60,1); }
+.mkdash-port-speed { font-size: 12px; opacity: .85; margin-bottom: 8px; }
+.mkdash-port-io { font-size: 12px; opacity: .9; display: grid; gap: 4px; }
+
+/* 2-col table */
+.mkdash-table-2col th { width: 140px; }
+
+
+
+/* Fix6-Resize + Fix7-Maximize + Fix9-ConfigMenu */
+
+.mkdash-topbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 10px 12px;
+	margin: 0 0 8px 0;
+	border: 1px solid var(--border-color, #d9d9d9);
+	border-radius: 10px;
+	background: var(--background, #fff);
+}
+
+.mkdash-topbar-title {
+	font-weight: 600;
+}
+
+.mkdash-topbar-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.mkdash-gear {
+	min-width: 40px;
+}
+
+/* Modal for config.json */
+.mkdash-modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,.35);
+	z-index: 10000;
+}
+
+.mkdash-modal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(800px, 94vw);
+	height: min(720px, 88vh);
+	background: var(--background, #fff);
+	border: 1px solid var(--border-color, #d9d9d9);
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0,0,0,.25);
+	z-index: 10001;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+  direction: rtl;
+}
+
+.mkdash-modal-head,
+.mkdash-modal-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 5px 12px;
+	background: rgba(0,0,0,.03);
+	border-bottom: 1px solid var(--border-color, #d9d9d9);
+}
+
+.mkdash-modal-foot {
+	border-bottom: 0;
+	border-top: 1px solid var(--border-color, #d9d9d9);
+	justify-content: flex-end;
+}
+
+.mkdash-modal-body {
+	flex: 1;
+	min-height: 0;
+	padding: 10px 12px;
+	overflow: auto;
+}
+
+/* Hide cards when 'hidden' is enabled */
+.mkdash-card.mkdash-hidden {
+	display: none !important;
+}
+
+.mkdash-config-textarea {
+	width: 100%;
+	height: 100%;
+	resize: none;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	font-size: 12px;
+	line-height: 1.4;
+	padding: 10px;
+	border-radius: 8px;
+	border: 1px solid var(--border-color, #d9d9d9);
+	background: rgba(0,0,0,.02);
+}
+
+/* Settings modal (controllers instead of raw JSON) */
+.mkdash-set-sec { margin: 10px 0 18px; }
+.mkdash-set-sec-title { font-weight: 700; margin: 6px 0 10px; }
+.mkdash-set-note { font-size: 12px; opacity: .85; margin: 2px 0 10px; color: #1278ca;}
+.mkdash-table-set { width: 100%; border-collapse: collapse; min-width: 760px; }
+.mkdash-table-set th, .mkdash-table-set td { padding: 5px 8px; }
+.mkdash-table-set th { font-size: 12px; opacity: .85; }
+.mkdash-set-title { min-width: 150px; }
+.mkdash-set-num { width: 88px; }
+.mkdash-refresh-wrap { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Grid sizing for L3 cards */
+.mkdash-grid {
+	grid-auto-rows: 150px;
+	grid-auto-flow: dense;
+}
+
+.mkdash-l3 { min-width: 0; }
+
+.mkdash-card--wrap {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.mkdash-cardbody {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+}
+
+/* Resize handles */
+.mkdash-resize {
+	position: absolute;
+	z-index: 20;
+	opacity: .35;
+}
+
+.mkdash-resize:hover { opacity: .7; }
+
+.mkdash-resize-wh {
+  align-self: center;
+	bottom: 0px;
+	width: 20%;
+	height: 4px;
+	cursor: n-resize;
+	border-bottom: 2px solid rgba(0,0,0,.35);
+}
+
+/* Width resize handle (updates % width only) */
+.mkdash-resize-w {
+	right: -11px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 10px;
+	height: 50px;
+	cursor: ew-resize;
+	border-right: 2px solid rgba(0,0,0,.25);
+}
+
+.mkdash-l2 { position: relative; }
+.mkdash-resize-y {
+	left: 10px;
+	right: 10px;
+	bottom: 4px;
+	height: 10px;
+	cursor: ns-resize;
+	border-top: 2px solid rgba(0,0,0,.2);
+}
+
+.mkdash-resizing {
+	user-select: none;
+}
+
+/* Maximize overlay + centered popup */
+.mkdash-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 9990;
+  display: none;
+}
+
+body.mkdash-has-max .mkdash-overlay { display: block; }
+
+.mkdash-max {
+	position: fixed !important;
+	top: 50% !important;
+	left: 50% !important;
+	transform: translate(-50%, -50%) !important;
+	width: min(1200px, 96vw) !important;
+	height: min(800px, 90vh) !important;
+	z-index: 9999 !important;
+	background: var(--background, #fff);
+	border: 1px solid var(--border-color, #d9d9d9);
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0,0,0,.25);
+	overflow: hidden;
+}
+
+/* When LuCI sidebar is present (desktop widths), shift the maximized window right
+ * and reduce its width to avoid covering the navigation. */
+@media (min-width: 769px) {
+	.mkdash-max {
+		left: calc(50% + 105px) !important;
+		width: min(1200px, calc(96vw - 210px)) !important;
+	}
+}
+
+/* Disable resizing while in maximized view */
+.mkdash-max .mkdash-resize {
+	display: none !important;
+}
+
+.mkdash-max .mkdash-card--wrap {
+	height: 100%;
+}
+
+/* L3 tools (settings) */
+.mkdash-card--wrap { position: relative; height: 100%; }
+.mkdash-l3 {
+  flex: 1 1 var(--mkdash-wpct, 50%);
+  min-width: var(--mkdash-minw, 260px);
+  max-width: 100%;
+}
+
+.mkdash-cardbody { height: calc(100% - 44px); overflow: auto; } /* header ~44px */
+
+.mkdash-tools-btn {
+  position: absolute;
+  left: -9px;
+  bottom: -3px;
+  width: 27px;
+  height: 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(255,255,255,.1);
+  cursor: pointer;
+  padding: 0px;
+}
+.mkdash-tools-btn:hover { background: rgba(255,255,255,1); }
+
+.mkdash-pop {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  width: 260px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  padding: 3px;
+  display: none;
+  z-index: 50;
+  direction: rtl;
+}
+.mkdash-pop.mkdash-pop--open { display: block; }
+.mkdash-pop-row { display: flex; gap: 1px; align-items: center; margin: 1px 1px; padding: 2px; }
+.mkdash-pop-row--size { align-items: flex-start; }
+.mkdash-pop-label { font-size: 12px; opacity: .85; min-width: 80px; text-align: center; }
+.mkdash-pop-check { display: inline-flex; gap: 8px; align-items: center; font-size: 12px; }
+.mkdash-pop-num { width: 75px; padding: 6px; margin: 1px; line-height: normal; }
+.mkdash-pop-size { display: inline-flex; gap: 6px; align-items: center; }
+.mkdash-pop-size-lbl { font-size: 11px; opacity: .8; }
+
+
+
+@media (max-width: 640px) {
+  .mkdash-grid { gap: 10px; }
+  .mkdash-l3 { flex-basis: 100% !important; min-width: 0 !important; }
+  .mkdash-l2 { padding: 8px; }
+}
+
+.mkdash-pop-size2 { display: flex; flex-direction: column; gap: 8px; }
+.mkdash-pop-size-row { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+.mkdash-pop-size-wbtns { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.mkdash-pop-wbtn { padding: 3px 8px; border-radius: 10px; border: 1px solid rgba(0,0,0,.12); background: rgba(255,255,255,.96); cursor: pointer; font-size: 12px; }
+.mkdash-pop-wbtn:hover { background: rgba(255,255,255,1); }

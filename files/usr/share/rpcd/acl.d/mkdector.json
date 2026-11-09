@@ -1,0 +1,14 @@
+{
+  "mkdector": {
+    "description": "MKDector framework",
+    "read": {
+      "ubus": {
+        "mkdector": [
+          "list", "section_get",
+          "diagnose", "diagnose_result", "repair",
+          "tail", "stop", "clear", "mode_info", "scan_sections"
+        ]
+      }
+    }
+  }
+}

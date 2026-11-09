@@ -1,0 +1,77 @@
+#!/bin/sh
+# mkdector - Wi-Fi WDS checks
+
+. /usr/share/libubox/jshn.sh 2>/dev/null
+
+UCI=/sbin/uci
+uci_get() { $UCI -q get "$1" 2>/dev/null; }
+
+list_wifi_ifaces() {
+	$UCI -q show wireless 2>/dev/null | awk -F'[.=]' '/=wifi-iface/{print $2}'
+}
+
+get_mode_id() {
+	local f="/tmp/mkdector/topology.result.json"
+	if [ -r "$f" ] && command -v jsonfilter >/dev/null 2>&1; then
+		jsonfilter -i "$f" -e '@.facts.mode_id' 2>/dev/null
+		return
+	fi
+	if [ -x /usr/libexec/mkdector/topology/mkchecktopology ] && command -v jsonfilter >/dev/null 2>&1; then
+		/usr/libexec/mkdector/topology/mkchecktopology | jsonfilter -e '@.facts.mode_id' 2>/dev/null
+		return
+	fi
+	echo ""
+}
+
+main() {
+	json_init
+	json_add_object issues
+	json_add_boolean wds_missing 0
+	json_add_boolean wds_not_on_lan 0
+	json_add_boolean ap_binding_mismatch 0
+	json_close_object
+
+	json_add_object facts
+	local mode_id ifaces sec wmode wds net wds_count bad_wds ap_mismatch
+	mode_id="$(get_mode_id)"
+	json_add_string mode_id "${mode_id:-}"
+
+	wds_count=0
+	bad_wds=0
+	ap_mismatch=0
+
+	ifaces="$(list_wifi_ifaces)"
+	for sec in $ifaces; do
+		wmode="$(uci_get "wireless.$sec.mode")"
+		wds="$(uci_get "wireless.$sec.wds")"
+		net="$(uci_get "wireless.$sec.network")"
+
+		if [ "$wds" = "1" ] && { [ "$wmode" = "ap" ] || [ "$wmode" = "sta" ]; }; then
+			wds_count=$((wds_count+1))
+			[ "$net" = "lan" ] || bad_wds=1
+		fi
+
+		# check APs binding depending on mode
+		if [ "$wmode" = "ap" ] && [ "$wds" != "1" ]; then
+			case "$mode_id" in
+				ap_vlan_wds_tx|ap_vlan_wds_rx) [ "$net" = "vlan" ] || ap_mismatch=1 ;;
+				ap_wds_tx|ap_wds_rx) [ "$net" = "lan" ] || ap_mismatch=1 ;;
+				*) : ;;
+			esac
+		fi
+		# mesh case is handled by wifi_mesh section
+		done
+
+	[ "$wds_count" -eq 0 ] && json_add_boolean wds_missing 1
+	[ "$bad_wds" -eq 1 ] && json_add_boolean wds_not_on_lan 1
+	[ "$ap_mismatch" -eq 1 ] && json_add_boolean ap_binding_mismatch 1
+
+	json_add_object summary
+	json_add_int wds_count "$wds_count"
+	json_close_object
+
+	json_close_object
+	json_dump
+}
+
+main

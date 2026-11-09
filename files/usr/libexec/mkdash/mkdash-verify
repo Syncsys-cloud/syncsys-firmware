@@ -1,0 +1,3 @@
+#!/bin/sh
+touch /etc/mkapp/.mkdash_licensed
+exit 0

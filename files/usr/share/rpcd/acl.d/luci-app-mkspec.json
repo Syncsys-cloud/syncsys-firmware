@@ -1,0 +1,11 @@
+{
+  "luci-app-mkspec": {
+    "description": "Grant access to read device specs via mkspec",
+    "read": {
+      "file": {
+        "/usr/libexec/mkspec/mkspec.sh": [ "exec" ],
+        "/usr/libexec/mkspec/hidden/view.js": [ "read" ]
+      }
+    }
+  }
+}

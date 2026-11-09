@@ -1,0 +1,40 @@
+{
+  "modes": {
+    "ap": {
+      "services": { "firewall": "stopped", "dnsmasq": "stopped", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    },
+    "ap_mesh": {
+      "services": { "firewall": "stopped", "dnsmasq": "stopped", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    },
+    "ap_wds_tx": {
+      "services": { "firewall": "stopped", "dnsmasq": "stopped", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    },
+    "ap_wds_rx": {
+      "services": { "firewall": "stopped", "dnsmasq": "stopped", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    },
+    "ap_vlan": {
+      "services": { "firewall": "stopped", "dnsmasq": "stopped", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    },
+    "ap_vlan_mesh": {
+      "services": { "firewall": "stopped", "dnsmasq": "stopped", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    },
+    "ap_vlan_wds_tx": {
+      "services": { "firewall": "stopped", "dnsmasq": "stopped", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    },
+    "ap_vlan_wds_rx": {
+      "services": { "firewall": "stopped", "dnsmasq": "stopped", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    },
+    "ap_broadband": {
+      "services": { "firewall": "any", "dnsmasq": "running", "odhcpd": "stopped" },
+      "network": { "wan": "absent", "wan6": "absent", "dhcp": "stopped" }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "admin/almalaki-app/mkdash": {
+    "title": "MKDSH [داش بورد]",
+    "order": 9,
+    "action": {
+      "type": "view",
+      "path": "mkdash/overview"
+    },
+    "depends": { "acl": [ "luci-app-mkdash" ] }
+  }
+}

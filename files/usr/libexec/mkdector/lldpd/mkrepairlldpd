@@ -1,0 +1,319 @@
+#!/bin/sh
+#
+# Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
+# AL-MALAKI OPEWNWRT TEAM < almalakiopenwrt@gmail.com> 
+# Copyright (c) 2025-2026. All Rights Reserved.
+#
+# mkrepairlldpd - Apply LLDPD repairs
+# Inputs:
+#   MK_SOLUTION = auto|proto|large|iface|idtype|bcast
+#   MK_ISSUES   = JSON array string e.g. ["never_seen","mac_only"]
+# Output: text to stdout (logged by mkdector)
+
+set -eu
+
+# ensure lldpd installed and service script exists
+if [ ! -x /etc/init.d/lldpd ]; then
+  say "lldpd service not found"
+  exit 1
+fi
+
+# always enable before repair
+uci -q set lldpd.config.enabled='1'
+uci -q commit lldpd
+/etc/init.d/lldpd enable 2>/dev/null || true
+
+
+SOLUTION="${MK_SOLUTION:-auto}"
+ISSUES_JSON="${MK_ISSUES:-[]}"
+
+say() { echo "[lldpd][repair] $*"; }
+
+uci_set() { uci -q set "$1=$2" 2>/dev/null || true; }
+uci_add_list() { uci -q add_list "$1=$2" 2>/dev/null || true; }
+uci_del_list() { uci -q del_list "$1=$2" 2>/dev/null || true; }
+uci_commit() { uci -q commit lldpd 2>/dev/null || true; }
+
+have_iface() { ip link show "$1" >/dev/null 2>&1; }
+
+pick_iface() {
+    # Prefer br-lan if exists, else lan, else first non-loopback
+    if have_iface br-lan; then echo "br-lan"; return; fi
+    if have_iface lan; then echo "lan"; return; fi
+    ip -o link 2>/dev/null | awk -F': ' '$2!="lo"{print $2; exit}'
+}
+
+ensure_enabled() {
+    uci_set lldpd.config.enabled '1'
+}
+
+fix_interfaces() {
+    local main_if
+    main_if="$(pick_iface)"
+    say "Setting LLDPD interface to: $main_if (and removing loopback)"
+
+    # Reset interface list to a single sane interface
+    # (uci syntax allows multiple tokens; safest is delete & add_list)
+    uci -q delete lldpd.config.interface 2>/dev/null || true
+    uci_add_list lldpd.config.interface "$main_if"
+    # local ifap22  "phy1-ap0"
+    # local ifst22  "wlan1"
+    # local ifms22  "phy1-mesh0"
+
+    # local ifap23  "phy1-ap0"
+    # local ifst23  "phy1-sta0"
+    # local ifms23  "phy1-mesh0"
+    # Ensure loopback not present
+    uci_del_list lldpd.config.interface "loopback"
+}
+
+fix_idtype() {
+    # Your config already uses ifname :contentReference[oaicite:3]{index=3}
+    say "Setting port id subtype to ifname"
+    uci_set lldpd.config.lldp_portidsubtype 'ifname'
+    uci_set lldpd.config.lldp_agenttype 'nearest-bridge'
+}
+
+fix_protocols() {
+    # Ensure LLDP forced; tune CDP if needed
+    say "Ensuring LLDP is forced and protocol flags are consistent"
+    uci_set lldpd.config.force_lldp '1'
+
+    # Safe default: enable CDP v1/v2, keep others as configured unless you want to disable them
+    # Your config enables cdp/fdp/sonmp/edp :contentReference[oaicite:4]{index=4}
+    uci_set lldpd.config.enable_cdp '1'
+    uci_set lldpd.config.cdp_version 'cdpv1v2'
+
+    # If broadcast/noise issue, you can disable extra protocols later via bcast solution
+}
+
+fix_large_inventory() {
+    # "تهيئة مكبرة": enable inventory TLVs (LLDP-MED inventory)
+    # Your config has lldpmed_no_inventory='1' :contentReference[oaicite:5]{index=5}
+    say "Enabling LLDP inventory TLVs (disabling lldpmed_no_inventory)"
+    uci_set lldpd.config.lldpmed_no_inventory '0'
+
+    # Set platform string if missing
+    local plat
+    plat="$(uci -q get lldpd.config.lldp_platform 2>/dev/null || true)"
+    if [ -z "$plat" ]; then 
+        uci_set lldpd.config.lldp_platform "$(uname -n 2>/dev/null || echo AL-Malaki_OpenWrt)"
+    fi
+}
+
+fix_broadcast_noise() {
+    # "البرودكاست العالي": reduce advertisement rate + optionally disable extra discovery protocols
+    say "Reducing LLDP advertisement rate to reduce noise"
+    uci_set lldpd.config.lldp_tx_interval '60'
+    uci_set lldpd.config.lldp_tx_hold '4'
+
+    # Optional: disable other discovery protocols to reduce chatter
+    uci_set lldpd.config.enable_fdp '0'
+    uci_set lldpd.config.enable_sonmp '0'
+    uci_set lldpd.config.enable_edp '0'
+    # Keep CDP on by default; can set to 0 if you prefer strict LLDP only.
+}
+
+fix_config_Type1() {
+    say "Config LLDP Type1"
+cat << 'EOF' > /etc/config/lldpd
+config lldpd 'config'
+	option enable_cdp '1'
+	option lldp_class '4'
+	option lldp_location 'address country EU'
+	option enabled '1'
+	option lldp_capability_advertisements '1'
+	option lldp_mgmt_addr_advertisements '1'
+	option lldp_tx_interval '30'
+	option lldp_tx_hold '4'
+	option readonly_mode '0'
+	option lldp_agenttype 'nearest-bridge'
+	option cdp_version 'cdpv1v2'
+	option force_cdp '1'
+	list interface 'br-lan'
+	option lldp_portidsubtype 'ifname'
+	option enable_fdp '0'
+	option enable_edp '0'
+	option enable_sonmp '0'
+EOF
+}
+
+fix_config_Type2() {
+    say "Config LLDP Type2"
+cat << 'EOF' > /etc/config/lldpd
+config lldpd 'config'
+  option enable_cdp '1'
+  option lldp_class '4'
+  option lldp_location 'address country FR'
+  option lldp_capability_advertisements '1'
+  option lldp_tx_interval '30'
+  option lldp_tx_hold '4'
+  option readonly_mode '0'
+  option lldp_agenttype 'nearest-bridge'
+  option cdp_version 'cdpv1v2'
+  option lldp_portidsubtype 'ifname'
+  option enable_fdp '0'
+  option enable_edp '0'
+  option enable_sonmp '0'
+  option lldp_mgmt_addr_advertisements '0'
+  option enabled '1'
+  list interface 'br-lan'
+  option force_lldp '1'
+EOF
+}
+
+fix_config_Type3() {
+    say "Config LLDP Type3"
+cat << 'EOF' > /etc/config/lldpd
+config lldpd 'config'
+  option enable_cdp '1'
+  option lldp_class '4'
+  option lldp_location 'address country FR'
+  option lldp_capability_advertisements '1'
+  option lldp_tx_interval '30'
+  option lldp_tx_hold '4'
+  option readonly_mode '0'
+  option lldp_agenttype 'nearest-bridge'
+  option cdp_version 'cdpv1v2'
+  option lldp_portidsubtype 'ifname'
+  option lldp_mgmt_addr_advertisements '0'
+  option enabled '1'
+  list interface 'br-lan'
+  option force_lldp '1'
+  option enable_fdp '1'
+  option enable_edp '1'
+  option enable_sonmp '1'
+EOF
+}
+
+fix_config_Type4() {
+    say "Config LLDP Type4"
+cat << 'EOF' > /etc/config/lldpd
+config lldpd config
+  option enable_cdp 1
+  option enable_fdp 1
+  option enable_sonmp 1
+  option enable_edp 1
+
+
+  option lldp_class 4
+  # lldp_policy only needed for lldp_class 2-3
+  # option lldp_policy 'application streaming-video unknown'
+  option lldp_location "address country EU"
+
+  # if empty, the distribution description is sent
+  #option lldp_description "OpenWrt System"
+  #option lldp_hostname "Modified Hostname"
+
+  #option lldp_mgmt_ip "!192.168.1.1"
+
+  # interfaces to listen on
+  list interface "loopback"
+  list interface "lan"
+
+EOF
+}
+
+fix_config_Type5() {
+    say "Config LLDP Type5"
+
+cat << 'EOF' > /etc/config/lldpd
+config lldpd config
+  option enable_cdp 1
+  option enable_fdp 1
+  option enable_sonmp 1
+  option enable_edp 1
+
+
+  option lldp_class 4
+  # lldp_policy only needed for lldp_class 2-3
+  # option lldp_policy 'application streaming-video unknown'
+  option lldp_location "address country EU"
+
+  # if empty, the distribution description is sent
+  #option lldp_description "OpenWrt System"
+  #option lldp_hostname "Modified Hostname"
+
+  #option lldp_mgmt_ip "!192.168.1.1"
+
+  # interfaces to listen on
+  list interface "br-lan"
+	list interface 'wlan1'
+
+EOF
+}
+
+restart_service() {
+    say "Restarting lldpd"
+    /etc/init.d/lldpd restart 2>/dev/null || {
+        say "restart failed, trying stop/start"
+        /etc/init.d/lldpd stop 2>/dev/null || true
+        sleep 1
+        /etc/init.d/lldpd start 2>/dev/null || true
+    }
+}
+
+# ---------- execution ----------
+say "solution=$SOLUTION issues=$ISSUES_JSON"
+
+case "$SOLUTION" in
+  auto)
+    ensure_enabled
+    fix_interfaces
+    fix_idtype
+    fix_protocols
+    # Keep default intervals unless noise issue; auto should be conservative
+    uci_set lldpd.config.lldp_tx_interval '30'
+    uci_set lldpd.config.lldp_tx_hold '4'
+    ;;
+  proto)
+    ensure_enabled
+    fix_protocols
+    ;;
+  large)
+    ensure_enabled
+    fix_large_inventory
+    ;;
+  iface)
+    ensure_enabled
+    fix_interfaces
+    ;;
+  idtype)
+    ensure_enabled
+    fix_idtype
+    ;;
+  bcast)
+    ensure_enabled
+    fix_broadcast_noise
+    ;;
+  confT1)
+    ensure_enabled
+    fix_config_Type1
+    ;;
+  confT2)
+    ensure_enabled
+    fix_config_Type2
+    ;;
+  confT3)
+    ensure_enabled
+    fix_config_Type3
+    ;;
+  confT4)
+    ensure_enabled
+    fix_config_Type4
+    ;;
+  confT5)
+    ensure_enabled
+    fix_config_Type5
+    ;;
+  *)
+    say "Unknown solution: $SOLUTION"
+    exit 1
+    ;;
+esac
+
+uci_commit
+restart_service
+
+say "Done."
+exit 0

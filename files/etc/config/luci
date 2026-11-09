@@ -11,3 +11,4 @@ config extern flash_keep
 	option opkg '/etc/opkg.conf'
 	option firewall '/etc/firewall.user'
 	option uploads '/lib/uci/upload/'
+

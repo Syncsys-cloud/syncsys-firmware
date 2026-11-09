@@ -1,0 +1,79 @@
+#!/bin/sh
+# mkdector - Wi-Fi Mesh checks
+
+. /usr/share/libubox/jshn.sh 2>/dev/null
+
+UCI=/sbin/uci
+uci_get() { $UCI -q get "$1" 2>/dev/null; }
+
+get_mode_id() {
+	local f="/tmp/mkdector/topology.result.json"
+	if [ -r "$f" ] && command -v jsonfilter >/dev/null 2>&1; then
+		jsonfilter -i "$f" -e '@.facts.mode_id' 2>/dev/null
+		return
+	fi
+	if [ -x /usr/libexec/mkdector/topology/mkchecktopology ] && command -v jsonfilter >/dev/null 2>&1; then
+		/usr/libexec/mkdector/topology/mkchecktopology | jsonfilter -e '@.facts.mode_id' 2>/dev/null
+		return
+	fi
+	echo ""
+}
+
+main() {
+	local mode_id
+	mode_id="$(get_mode_id)"
+
+	json_init
+	json_add_object issues
+	json_add_boolean mesh_missing 0
+	json_add_boolean mesh_not_on_lan 0
+	json_add_boolean ap_binding_mismatch 0
+	json_close_object
+
+	json_add_object facts
+	json_add_string mode_id "${mode_id:-}"
+
+	local mesh_count=0 bad_mesh=0 ap_mismatch=0
+	local ifaces sec
+	ifaces="$($UCI -q show wireless 2>/dev/null | sed -n 's/^wireless\.\([^=]*\)=wifi-iface.*/\1/p')"
+	for sec in $ifaces; do
+		local wmode net wds
+		wmode="$(uci_get "wireless.$sec.mode")"
+		net="$(uci_get "wireless.$sec.network")"
+		wds="$(uci_get "wireless.$sec.wds")"
+		[ "$wmode" = "mesh" ] || continue
+		mesh_count=$((mesh_count+1))
+		[ "$net" = "lan" ] || bad_mesh=1
+		done
+
+	# AP bindings expectations
+	# ap_mesh: all APs -> lan
+	# ap_vlan_mesh: APs -> vlan, mesh -> lan
+	for sec in $ifaces; do
+		local wmode net
+		wmode="$(uci_get "wireless.$sec.mode")"
+		net="$(uci_get "wireless.$sec.network")"
+		[ "$wmode" = "ap" ] || continue
+		# skip WDS ap
+		[ "$(uci_get "wireless.$sec.wds")" = "1" ] && continue
+
+		if [ "$mode_id" = "ap_vlan_mesh" ]; then
+			[ "$net" = "vlan" ] || ap_mismatch=1
+		else
+			[ "$net" = "lan" ] || ap_mismatch=1
+		fi
+	done
+
+	[ "$mesh_count" -eq 0 ] && json_add_boolean mesh_missing 1
+	[ "$bad_mesh" -eq 1 ] && json_add_boolean mesh_not_on_lan 1
+	[ "$ap_mismatch" -eq 1 ] && json_add_boolean ap_binding_mismatch 1
+
+	json_add_object summary
+	json_add_int mesh_count "$mesh_count"
+	json_close_object
+
+	json_close_object
+	json_dump
+}
+
+main

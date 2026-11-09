@@ -1,0 +1,492 @@
+#!/bin/sh
+#
+# Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
+# AL-MALAKI OPEWNWRT TEAM < almalakiopenwrt@gmail.com> 
+# Copyright (c) 2025-2026. All Rights Reserved.
+#
+. /usr/share/libubox/jshn.sh 2>/dev/null
+
+REG="/usr/libexec/mkdector/sections.json"
+RUNDIR="/tmp/mkdector"
+mkdir -p "$RUNDIR" 2>/dev/null
+
+# rpcd passes params via stdin (most builds)
+RPCD_RAW=""
+DBG="/tmp/mkdector_debug.log"
+
+read_json() {
+    local in="$RPCD_RAW"
+    json_init
+    [ -n "$in" ] && json_load "$in" 2>/dev/null || true
+}
+
+load_registry() {
+    # Load sections.json into jshn context
+    json_init
+    json_load_file "$REG" 2>/dev/null || return 1
+    return 0
+}
+
+sec_lookup() {
+    # sec_lookup <sid>
+    # outputs 3 lines: title, diag_script, repair_script
+    local sid="$1"
+    local keys k id title d r
+
+    load_registry || return 1
+
+    json_select sections 2>/dev/null || return 1
+    json_get_keys keys 2>/dev/null
+
+    for k in $keys; do
+        json_select "$k" 2>/dev/null || continue
+        json_get_var id id
+        if [ "$id" = "$sid" ]; then
+            json_get_var title title
+            json_select scripts 2>/dev/null || true
+            json_get_var d diagnose
+            json_get_var r repair
+            # restore
+            echo "${title:-}"
+            echo "${d:-}"
+            echo "${r:-}"
+            return 0
+        fi
+        json_select .. 2>/dev/null || true
+    done
+
+    return 1
+}
+
+sec_exists() {
+    sec_lookup "$1" >/dev/null 2>&1
+}
+
+sec_title() {
+    sec_lookup "$1" 2>/dev/null | sed -n '1p'
+}
+
+sec_diag_script() {
+    sec_lookup "$1" 2>/dev/null | sed -n '2p'
+}
+
+sec_rep_script() {
+    sec_lookup "$1" 2>/dev/null | sed -n '3p'
+}
+
+# تعقيم معرف القسم: أسماء لاتينية/أرقام/شرطات فقط
+# (يمنع اجتياز المسار عبر ../ في بناء مسارات السجل/النتيجة)
+san_sid() { printf '%s' "$1" | tr -cd 'a-zA-Z0-9_-'; }
+
+log_path() { echo "$RUNDIR/$(san_sid "$1").log"; }
+pid_path() { echo "$RUNDIR/$(san_sid "$1").pid"; }
+
+pg_kill() {
+    local pid="$1"
+    [ -n "$pid" ] || return 1
+    kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null
+}
+
+method_list() {
+    # return registry to UI
+    cat "$REG"
+}
+
+method_section_get() {
+    read_json
+    local sid
+    json_get_var sid section
+    [ -n "$sid" ] || sid=""
+
+    {
+      echo "----- $(date) -----"
+      echo "method=section_get raw=$RPCD_RAW"
+      echo "sid=$sid"
+    } >> "$DBG"
+
+    if ! sec_exists "$sid"; then
+        json_init
+        json_add_string error "Unknown section"
+        json_dump
+        exit 1
+    fi
+
+    json_init
+    json_add_string id "$sid"
+    json_add_string title "$(sec_title "$sid")"
+
+    # For UI we can return full section entry as JSON string (optional later).
+    # Keep current interface minimal.
+    json_dump
+}
+
+method_tail() {
+    read_json
+    local sid lines
+    json_get_var sid section
+    json_get_var lines lines
+    [ -n "$sid" ] || sid=""
+    [ -n "$lines" ] || lines=120
+
+    # clamp lines
+    echo "$lines" | grep -Eq '^[0-9]+$' || lines=120
+    [ "$lines" -lt 20 ] && lines=20
+    [ "$lines" -gt 800 ] && lines=800
+
+    local lp pp running=0
+    lp="$(log_path "$sid")"
+    pp="$(pid_path "$sid")"
+
+    if [ -f "$pp" ]; then
+        local pid
+        pid="$(cat "$pp" 2>/dev/null)"
+        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+            running=1
+        else
+            rm -f "$pp"
+        fi
+    fi
+
+    local out=""
+    [ -f "$lp" ] && out="$(tail -n "$lines" "$lp" 2>/dev/null)"
+
+    json_init
+    json_add_boolean running "$running"
+    json_add_string output "$out"
+    json_dump
+}
+
+method_diagnose_result() {
+    read_json
+    local sid
+    json_get_var sid section
+    sid="$(san_sid "$sid")"
+
+    if ! sec_exists "$sid"; then
+        json_init
+        json_add_string error "Unknown section"
+        json_dump
+        exit 1
+    fi
+
+    local rf
+    rf="$RUNDIR/$sid.result.json"
+
+    if [ -s "$rf" ]; then
+        # Return parsed JSON object directly (not a string)
+        # If json_load fails, return raw string as fallback
+        local raw
+        raw="$(cat "$rf" 2>/dev/null)"
+
+        json_init
+        if json_load "$raw" 2>/dev/null; then
+            # already in jshn context, just dump it
+            json_dump
+        else
+            json_add_string error "Invalid JSON result"
+            json_add_string raw "$raw"
+            json_dump
+        fi
+        exit 0
+    fi
+
+    json_init
+    json_add_boolean pending 1
+    json_dump
+}
+
+
+method_clear() {
+    read_json
+    local sid
+    json_get_var sid section
+    [ -n "$sid" ] || sid=""
+
+    rm -f "$(log_path "$sid")"
+    json_init
+    json_add_boolean ok 1
+    json_dump
+}
+
+method_stop() {
+    read_json
+    local sid
+    json_get_var sid section
+    [ -n "$sid" ] || sid=""
+
+    local pp pid
+    pp="$(pid_path "$sid")"
+    if [ -f "$pp" ]; then
+        pid="$(cat "$pp" 2>/dev/null)"
+        [ -n "$pid" ] && pg_kill "$pid"
+        rm -f "$pp"
+    fi
+
+    json_init
+    json_add_boolean ok 1
+    json_dump
+}
+
+method_diagnose() {
+    read_json
+    local sid
+    json_get_var sid section
+    sid="$(san_sid "$sid")"
+
+    {
+      echo "----- $(date) -----"
+      echo "method=diagnose raw=$RPCD_RAW"
+      echo "sid=$sid"
+    } >> "$DBG"
+
+    if ! sec_exists "$sid"; then
+        json_init
+        json_add_string error "Unknown section"
+        json_dump
+        exit 1
+    fi
+
+    local script lp pp
+    script="$(sec_diag_script "$sid")"
+    lp="$(log_path "$sid")"
+    pp="$(pid_path "$sid")"
+
+    if [ ! -x "$script" ]; then
+        json_init
+        json_add_string error "Diagnose script not executable"
+        json_dump
+        exit 1
+    fi
+
+    # stop any running job for same section
+    if [ -f "$pp" ]; then
+        local pid
+        pid="$(cat "$pp" 2>/dev/null)"
+        [ -n "$pid" ] && pg_kill "$pid"
+        rm -f "$pp"
+    fi
+
+    : > "$lp"
+
+    # Run diagnose in background.
+    # IMPORTANT:
+    # - Keep stdout(JSON) in result file ONLY (clean JSON).
+    # - Append stderr to log (do not duplicate output).
+    sh -c "
+        echo '[mkdector] diagnose section=$sid' >> '$lp'
+        out='$RUNDIR/$sid.result.json'
+        err='$RUNDIR/$sid.stderr'
+        rm -f \"\$out\" \"\$err\" 2>/dev/null
+
+        '$script' >\"\$out\" 2>\"\$err\" || true
+
+        # log stderr (if any)
+        [ -s \"\$err\" ] && cat \"\$err\" >> '$lp'
+        # log JSON output for UI parsing
+        [ -s \"\$out\" ] && cat \"\$out\" >> '$lp'
+    " >/dev/null 2>&1 &
+
+    echo "$!" > "$pp"
+
+    json_init
+    json_add_boolean ok 1
+    json_add_string section "$sid"
+    json_dump
+}
+
+solution_valid() {
+    # solution_valid <sid> <solution>
+    # التحقق أن الحل مسجل فعلًا ضمن حلول القسم في sections.json
+    local sid="$1" sol="$2"
+    local keys k id skeys sk s_id
+
+    load_registry || return 1
+    json_select sections 2>/dev/null || return 1
+    json_get_keys keys 2>/dev/null
+
+    for k in $keys; do
+        json_select "$k" 2>/dev/null || continue
+        json_get_var id id
+        if [ "$id" = "$sid" ]; then
+            json_select solutions 2>/dev/null || return 1
+            json_get_keys skeys 2>/dev/null
+            for sk in $skeys; do
+                json_select "$sk" 2>/dev/null || continue
+                json_get_var s_id id
+                json_select .. 2>/dev/null || true
+                [ "$s_id" = "$sol" ] && return 0
+            done
+            return 1
+        fi
+        json_select .. 2>/dev/null || true
+    done
+    return 1
+}
+
+method_repair() {
+    read_json
+    local sid solution issues_json
+    json_get_var sid section
+    json_get_var solution solution
+    json_get_var issues_json issues
+
+    {
+      echo "----- $(date) -----"
+      echo "method=repair raw=$RPCD_RAW"
+      echo "sid=$sid solution=$solution issues=$issues_json"
+    } >> "$DBG"
+
+    [ -n "$sid" ] || sid=""
+    [ -n "$solution" ] || solution=""
+    [ -n "$issues_json" ] || issues_json="[]"
+
+    # تعقيم صارم لما يُمرر لاحقًا (حماية من حقن الأوامر):
+    # المعرفات أسماء لاتينية/أرقام/شرطات فقط، وقائمة المشاكل JSON محارف محدودة.
+    sid="$(printf '%s' "$sid" | tr -cd 'a-zA-Z0-9_-')"
+    solution="$(printf '%s' "$solution" | tr -cd 'a-zA-Z0-9_-')"
+    issues_json="$(printf '%s' "$issues_json" | tr -cd 'a-zA-Z0-9_",:[]{} -')"
+
+    if ! sec_exists "$sid"; then
+        json_init
+        json_add_string error "Unknown section"
+        json_dump
+        exit 1
+    fi
+
+    # الحل يجب أن يكون من الحلول المسجلة للقسم (التحقق من الأوامر السليمة)
+    if [ -n "$solution" ] && ! solution_valid "$sid" "$solution"; then
+        json_init
+        json_add_string error "Unknown solution for section"
+        json_dump
+        exit 1
+    fi
+
+    local script lp pp
+    script="$(sec_rep_script "$sid")"
+    lp="$(log_path "$sid")"
+    pp="$(pid_path "$sid")"
+
+    if [ ! -x "$script" ]; then
+        json_init
+        json_add_string error "Repair script not executable"
+        json_dump
+        exit 1
+    fi
+
+    # stop any running job for same section
+    if [ -f "$pp" ]; then
+        local pid
+        pid="$(cat "$pp" 2>/dev/null)"
+        [ -n "$pid" ] && pg_kill "$pid"
+        rm -f "$pp"
+    fi
+
+    : > "$lp"
+
+    # تمرير القيم كمتغيرات بيئة حقيقية (وليس نصًا داخل sh -c) — لا حقن ممكن
+    {
+        echo "[mkdector] repair section=$sid solution=$solution" >> "$lp"
+        MK_SECTION="$sid" MK_SOLUTION="$solution" MK_ISSUES="$issues_json" \
+            "$script" >> "$lp" 2>&1
+    } >/dev/null 2>&1 &
+
+    echo "$!" > "$pp"
+
+    json_init
+    json_add_boolean ok 1
+    json_add_string section "$sid"
+    json_dump
+}
+
+# جلب وضع الجهاز وإعداداته فقط (خفيف — يُستخدم أول الدخول، بلا فحص مشاكل)
+method_mode_info() {
+    local tf="$RUNDIR/topology.result.json"
+    /usr/libexec/mkdector/topology/mkchecktopology > "$tf" 2>/dev/null || true
+    if [ -s "$tf" ]; then
+        cat "$tf"
+    else
+        echo '{"error":"topology detect failed"}'
+    fi
+}
+
+# فحص أقسام مختارة: يستقبل قائمة معرفات (section)، يشغّل تشخيص كل منها،
+# ويعيد النتائج مجمّعة. أساس "المستخدم يختار الأقسام التي يريد فحصها".
+method_scan_sections() {
+    read_json
+    local sids
+    json_get_var sids sections
+    [ -n "$sids" ] || sids=""
+    # تعقيم: معرفات لاتينية/أرقام/شرطات/مسافات/فواصل فقط
+    sids="$(printf '%s' "$sids" | tr ',' ' ' | tr -cd 'a-zA-Z0-9_ -')"
+
+    load_registry || { echo '{"error":"registry load failed"}'; exit 1; }
+
+    # وضع الجهاز الحالي (يُخزَّن ليستفيد منه المشخّصون التابعون له)
+    local mode_id="ap"
+    local tf="$RUNDIR/topology.result.json"
+    if [ -s "$tf" ] && command -v jsonfilter >/dev/null 2>&1; then
+        local m; m="$(jsonfilter -i "$tf" -e '@.facts.mode_id' 2>/dev/null)"
+        [ -n "$m" ] && mode_id="$m"
+    fi
+
+    json_init
+    json_add_string mode_id "$mode_id"
+    json_add_object results
+
+    local id diag rf out
+    for id in $sids; do
+        id="$(san_sid "$id")"
+        [ -n "$id" ] || continue
+        diag="$(jsonfilter -i "$REG" -e "@.sections[@.id=\"$id\"].scripts.diagnose" 2>/dev/null)"
+        [ -x "$diag" ] || continue
+        rf="$RUNDIR/$id.result.json"
+        out="$("$diag" 2>/dev/null)"
+        [ -n "$out" ] && printf '%s' "$out" > "$rf" 2>/dev/null
+
+        # النتيجة الخام كسلسلة (الواجهة تحللها JSON.parse)
+        json_add_object "$id"
+        json_add_string result "$out"
+        json_close_object
+    done
+
+    json_close_object
+    json_dump
+}
+
+# --- rpcd entrypoint ---
+case "$1" in
+  list)
+    echo '{
+      "list": {},
+      "section_get": {},
+      "diagnose": {},
+      "diagnose_result": {},
+      "repair": {},
+      "tail": {},
+      "stop": {},
+      "clear": {},
+      "mode_info": {},
+      "scan_sections": { "sections": "" }
+    }'
+    ;;
+  call)
+    RPCD_RAW="$(cat 2>/dev/null)"
+    case "$2" in
+      list) method_list ;;
+      section_get) method_section_get ;;
+      diagnose) method_diagnose ;;
+      diagnose_result) method_diagnose_result ;;
+      repair) method_repair ;;
+      tail) method_tail ;;
+      stop) method_stop ;;
+      clear) method_clear ;;
+      mode_info) method_mode_info ;;
+      scan_sections) method_scan_sections ;;
+      *) echo '{ "error":"Unknown method" }'; exit 1 ;;
+    esac
+    ;;
+  *)
+    echo '{ "error":"Invalid command" }'
+    exit 1
+    ;;
+esac

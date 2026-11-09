@@ -1,0 +1,20 @@
+
+config system
+	option hostname 'SyncSys'
+	option timezone '<+03>-3'
+	option ttylogin '0'
+	option log_size '128'
+	option urandom_seed '0'
+	option compat_version '1.1'
+	option zonename 'Asia/Aden'
+
+config timeserver 'ntp'
+	option enabled '0'
+
+config led 'led_wan'
+	option name 'wan link'
+	option sysfs 'red:status'
+	option trigger 'netdev'
+	option mode 'link tx rx'
+	option dev 'wan'
+

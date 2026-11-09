@@ -1,0 +1,18 @@
+{
+	"luci-app-wizard": {
+		"description": "Grant access for luci-app-wizard",
+		"read": {
+			"ubus": {
+				"iwinfo": [ "freqlist", "txpowerlist" ],
+				"file": [ "stat" ]
+			},
+			"uci": [ "network", "wireless", "wizard", "system", "watchcat" ]
+		},
+		"write": {
+			"ubus": {
+				"luci": [ "setPassword" ]
+			},
+			"uci": [ "system", "wizard", "watchcat" ]
+		}
+	}
+}

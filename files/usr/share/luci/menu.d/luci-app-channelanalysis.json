@@ -1,0 +1,13 @@
+{
+	"admin/analysis": {
+		"title": "تحليل القنوات",
+		"order": 5,
+		"action": {
+			"type": "view",
+			"path": "channelanalysis/channelanalysis"
+		},
+		"depends": {
+			"acl": [ "luci-app-channelanalysis" ]
+		}
+	}
+}

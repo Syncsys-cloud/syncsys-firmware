@@ -1,0 +1,4 @@
+
+config main
+	option minute '2'
+	option enable '0'

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="nd-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22326f"/><stop offset="50%" stop-color="#182350"/><stop offset="100%" stop-color="#0e1636"/></linearGradient>
+    <radialGradient id="nd-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#3a54c9" stop-opacity=".4"/><stop offset="100%" stop-color="#3a54c9" stop-opacity="0"/></radialGradient>
+    <style>
+      .nd-l{stroke:#5f76d6;stroke-width:1;opacity:.22}
+      .nd-n{fill:#8fa2f7}
+      .nd-g{fill:#e7c667}
+      @keyframes ndT{0%,100%{opacity:.35}50%{opacity:1}}
+      @keyframes ndF{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+      .nd-tw{animation:ndT 4s ease-in-out infinite}
+      .nd-fl{animation:ndF 12s ease-in-out infinite}
+      @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="url(#nd-bg)"/>
+  <circle cx="1120" cy="260" r="420" fill="url(#nd-glow)"/>
+  <g class="nd-fl">
+    <line class="nd-l" x1="260" y1="200" x2="520" y2="320"/>
+    <line class="nd-l" x1="520" y1="320" x2="760" y2="220"/>
+    <line class="nd-l" x1="760" y1="220" x2="1040" y2="360"/>
+    <line class="nd-l" x1="1040" y1="360" x2="1220" y2="240"/>
+    <line class="nd-l" x1="520" y1="320" x2="640" y2="560"/>
+    <line class="nd-l" x1="1040" y1="360" x2="980" y2="600"/>
+    <line class="nd-l" x1="300" y1="620" x2="640" y2="560"/>
+    <circle class="nd-n nd-tw" cx="260" cy="200" r="4"/>
+    <circle class="nd-n nd-tw" cx="520" cy="320" r="5" style="animation-delay:.5s"/>
+    <circle class="nd-g nd-tw" cx="760" cy="220" r="4" style="animation-delay:1s"/>
+    <circle class="nd-n nd-tw" cx="1040" cy="360" r="5" style="animation-delay:1.5s"/>
+    <circle class="nd-n nd-tw" cx="1220" cy="240" r="4" style="animation-delay:2s"/>
+    <circle class="nd-g nd-tw" cx="640" cy="560" r="5" style="animation-delay:.8s"/>
+    <circle class="nd-n nd-tw" cx="980" cy="600" r="4" style="animation-delay:1.3s"/>
+    <circle class="nd-n nd-tw" cx="300" cy="620" r="4" style="animation-delay:2.2s"/>
+  </g>
+</svg>

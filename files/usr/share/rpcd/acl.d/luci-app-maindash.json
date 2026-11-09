@@ -1,0 +1,78 @@
+{
+	"luci-app-maindash": {
+		"description": "Grant UCI access for luci-app-maindash",
+		"read": {
+			"cgi-io": [ "exec" ],
+			"uci": [ "maindash" ],
+			"ubus": {
+				"luci": [ "getConntrackList", "getRealtimeStats", "getProcessList" ],
+				"network.rrdns": [ "lookup" ],
+				"file": [ "stat", "list", "read", "exec" ],
+				"iwinfo": [ "info", "freqlist", "scan" ],
+				"luci": [ "getVersion" ],
+				"system": [ "board", "info", "cpu" ],
+				"iwinfo": [ "assoclist" ],
+				"network": ["getBridgeInfo", "getIpAddress", "getMacAddress", "getTxRate", "getRxRate"]
+			},
+			"file": {
+				"/bin/sh": [ "exec" ],
+       			 	"/usr/bin/top": [ "exec" ],
+        			"/usr/bin/free": [ "exec" ],
+        			"/etc/board.json": [ "read" ],
+        			"/proc/cpuinfo": [ "read" ],
+        			"/proc/stat": [ "read" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"luci": [ "setInitAction", "setLocaltime", "setPassword" ]
+			}
+		}
+	},
+	"luci-mod-maindash-maindash-storage": {
+		"description": "Grant access to Storage ",
+		"read": {
+			"ubus": {
+				"luci": [ "getMountPoints" ],
+				"system": [ "info" ],
+			}
+		}
+	},
+	"luci-mod-maindash-maindash-dhcp": {
+		"description": "Grant access to DHCP ",
+		"read": {
+			"ubus": {
+				"luci-rpc": [ "getDHCPLeases" ]
+			}
+		}
+	},
+	"luci-mod-maindash-maindash-dsl": {
+		"description": "Grant access to DSL ",
+		"read": {
+			"ubus": {
+				"dsl": [ "metrics" ]
+			}
+		}
+	},
+	"luci-mod-maindash-maindash-ports": {
+		"description": "Grant access to port ",
+		"read": {
+			"ubus": {
+				"luci": [ "getBuiltinEthernetPorts" ]
+			}
+		}
+	},
+	"luci-mod-maindash-maindash-wifi": {
+		"description": "Grant access to wireless status display",
+		"read": {
+			"ubus": {
+				"iwinfo": [ "assoclist" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"hostapd.*": [ "del_client", "wps_start", "wps_cancel", "wps_status" ]
+			}
+		}
+	}
+}

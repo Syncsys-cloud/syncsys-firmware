@@ -1,0 +1,91 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+boot() {
+	XBOOT=1 start
+	SSID=$(uci get wireless.@wifi-iface[0].ssid 2>/dev/null)
+	KEY=$(uci get wireless.@wifi-iface[0].key 2>/dev/null)
+	IPADDR=$(uci get network.lan.ipaddr 2>/dev/null)
+	NETMASK=$(uci get network.lan.netmask 2>/dev/null)
+	fakemesh=$(uci get fakemesh.default.enabled 2>/dev/null || echo 0)
+
+	if [ "$(uci get wizard.default.wifi_ssid 2>/dev/null)" = "$SSID" ] && [ "$(uci get wizard.default.lan_ipaddr 2>/dev/null)" = "$IPADDR" ]; then
+		:
+	else
+		uci set wizard.default=wizard
+		[ "$fakemesh" = "1" ] || {
+			uci set wizard.default.wifi_ssid="$SSID"
+			uci set wizard.default.wifi_key="$KEY"
+		}
+		uci set wizard.default.lan_ipaddr="$IPADDR"
+		uci set wizard.default.lan_netmask="$NETMASK"
+		uci commit wizard
+	fi
+}
+
+add_wizard() {
+    [ "x$XBOOT" = "x1" ] && return 0
+    local cfg="$1"
+    local tmp="/tmp/wizard_${cfg}.env"
+
+    old_MKSettings=$(uci get wizard.default.oldMKSettings 2>/dev/null || echo "")
+    old_CHWidte=$(uci get wizard.default.old_CHWidte 2>/dev/null || uci get wizard.default.oldCHWidte 2>/dev/null || echo "auto")
+
+    safe_export() { # usage: safe_export KEY VALUE
+      local k="$1" v="$2"
+      v_escaped=$(printf "%s" "$v" | sed "s/'/'\"'\"'/g")
+      printf "export %s='%s'\n" "$k" "$v_escaped"
+    }
+
+    {
+      echo "# wizard env $(date)"
+      safe_export CFG "$cfg"
+
+      for k in MKSettings RmoveOldConfig IPADD NETMASK SSID2G SSID5G VLANID \
+              mk_is_Vlan MESHID APWDSSID STAWDSSID WDS_TY WKEYTYPE WIFIKEY \
+              MWKEYTYPE MWIFIKEY DWKEYTYPE DWIFIKEY HIDDEN CH2G CH5G \
+              CHWidte DoPASS DPASS old_DPASS STOPREST TYPREST DelayREST \
+              No_WatchCat WC_Preiod WC_Timer \
+              SVC_batmand SVC_relayd SVC_mwan3 SVC_eoip SVC_wifisched \
+              BB_UNBRIDGE BB_ALLOW_MGMT \
+              PPPUSER PPPPASS PPPINTERFACE
+      do
+        config_get val "$cfg" "$k"
+        [ -n "$val" ] && safe_export "$k" "$val"
+      done
+
+      config_get val "$cfg" "2WKEYTYPE"
+      [ -n "$val" ] && safe_export WKEYTYPE2G "$val"
+      config_get val "$cfg" "2WIFIKEY"
+      [ -n "$val" ] && safe_export WIFIKEY2G "$val"
+      config_get val "$cfg" "5WKEYTYPE"
+      [ -n "$val" ] && safe_export WKEYTYPE5G "$val"
+      config_get val "$cfg" "5WIFIKEY"
+      [ -n "$val" ] && safe_export WIFIKEY5G "$val"
+
+      safe_export old_MKSettings "$old_MKSettings"
+      safe_export old_CHWidte "$old_CHWidte"
+    } > "$tmp"
+
+    /bin/ash -c "/usr/bin/setup_mk '$tmp' </dev/null >/dev/null 2>&1"
+
+    sleep 2
+    rm -f "$tmp"
+    (
+      sleep 1
+      /etc/init.d/network reload
+      /etc/init.d/wpad reload
+      #/etc/init.d/dnsmasq reload
+      /etc/init.d/uhttpd restart
+    )&
+}
+
+start() {
+	config_load wizard
+	config_foreach add_wizard wizard
+}
+
+restart() {
+	XRELOAD=1 start
+}

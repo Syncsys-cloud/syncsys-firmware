@@ -1,0 +1,331 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <title>AL-MALAKI isometric circuit-board city</title>
+  <style>
+    /* ===== AL-MALAKI iso-board — self contained, ib- prefix ===== */
+    .ib-parallaxFar { transform-origin:50% 50%; animation:ib-driftFar 60s ease-in-out infinite; }
+    .ib-parallaxMain{ transform-origin:50% 50%; animation:ib-bob 24s ease-in-out infinite; }
+    .ib-bokehA { animation:ib-floatA 26s ease-in-out infinite; }
+    .ib-bokehB { animation:ib-floatB 34s ease-in-out infinite; }
+    .ib-bokehC { animation:ib-floatA 30s ease-in-out infinite reverse; }
+    .ib-fog    { animation:ib-fog 40s ease-in-out infinite; }
+    .ib-via    { animation:ib-viaPulse 3.4s ease-in-out infinite; transform-origin:center; }
+    .ib-via.d1 { animation-delay:.4s;} .ib-via.d2{ animation-delay:.9s;}
+    .ib-via.d3 { animation-delay:1.5s;} .ib-via.d4{ animation-delay:2.1s;}
+    .ib-via.d5 { animation-delay:2.7s;} .ib-via.d6{ animation-delay:1.1s;}
+    .ib-glowPool{ animation:ib-breathe 12s ease-in-out infinite; }
+    .ib-scan    { animation:ib-scan 9s linear infinite; }
+    .ib-twinkle { animation:ib-twinkle 2.6s ease-in-out infinite; }
+    .ib-twinkle.t2{animation-delay:.7s;} .ib-twinkle.t3{animation-delay:1.4s;}
+    .ib-twinkle.t4{animation-delay:2s;}  .ib-twinkle.t5{animation-delay:1.1s;}
+
+    @keyframes ib-driftFar { 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(-22px,10px);} }
+    @keyframes ib-bob      { 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(8px,-6px);} }
+    @keyframes ib-floatA   { 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(26px,-30px) scale(1.06);} }
+    @keyframes ib-floatB   { 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(-30px,24px) scale(1.08);} }
+    @keyframes ib-fog      { 0%,100%{ opacity:.10; transform:translate(0,0);} 50%{ opacity:.22; transform:translate(30px,-10px);} }
+    @keyframes ib-viaPulse { 0%,100%{ opacity:.35; } 50%{ opacity:1; } }
+    @keyframes ib-breathe  { 0%,100%{ opacity:.7; } 50%{ opacity:1; } }
+    @keyframes ib-scan     { 0%{ opacity:0; transform:translateY(-30px);} 12%{opacity:.5;} 88%{opacity:.5;} 100%{ opacity:0; transform:translateY(30px);} }
+    @keyframes ib-twinkle  { 0%,100%{ opacity:.2; } 50%{ opacity:1; } }
+
+    @media (prefers-reduced-motion:reduce){ * { animation:none !important; } }
+  </style>
+
+  <defs>
+    <!-- ===== gradients ===== -->
+    <linearGradient id="ib-sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0"   stop-color="#0b1330"/>
+      <stop offset=".55" stop-color="#182450"/>
+      <stop offset="1"   stop-color="#22326f"/>
+    </linearGradient>
+    <linearGradient id="ib-topGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4d987"/>
+      <stop offset="1" stop-color="#caa12e"/>
+    </linearGradient>
+    <linearGradient id="ib-topBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fa2f7"/>
+      <stop offset="1" stop-color="#3a54c9"/>
+    </linearGradient>
+    <linearGradient id="ib-topEmer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5ff0b0"/>
+      <stop offset="1" stop-color="#2dce89"/>
+    </linearGradient>
+    <linearGradient id="ib-copper" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#caa12e"/>
+      <stop offset=".5" stop-color="#e7c667"/>
+      <stop offset="1" stop-color="#8a6a1a"/>
+    </linearGradient>
+    <linearGradient id="ib-trace2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3a54c9"/>
+      <stop offset="1" stop-color="#8fa2f7"/>
+    </linearGradient>
+
+    <radialGradient id="ib-pool" cx="50%" cy="50%" r="50%">
+      <stop offset="0"  stop-color="#9fb0ff" stop-opacity=".55"/>
+      <stop offset=".4" stop-color="#4a63d8" stop-opacity=".28"/>
+      <stop offset="1"  stop-color="#4a63d8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ib-poolGold" cx="50%" cy="50%" r="50%">
+      <stop offset="0"  stop-color="#f4d987" stop-opacity=".45"/>
+      <stop offset="1"  stop-color="#caa12e" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ib-spark" cx="50%" cy="50%" r="50%">
+      <stop offset="0"  stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset=".5" stop-color="#eaf0ff" stop-opacity=".9"/>
+      <stop offset="1"  stop-color="#8fa2f7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ib-bokehGold" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#e7c667" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#e7c667" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ib-bokehBlue" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#8fa2f7" stop-opacity=".65"/>
+      <stop offset="1" stop-color="#8fa2f7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ib-vignette" cx="62%" cy="46%" r="75%">
+      <stop offset="0"   stop-color="#000000" stop-opacity="0"/>
+      <stop offset=".62" stop-color="#060a1c" stop-opacity="0"/>
+      <stop offset="1"   stop-color="#050817" stop-opacity=".82"/>
+    </radialGradient>
+    <linearGradient id="ib-leftFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0"   stop-color="#060a1c" stop-opacity=".9"/>
+      <stop offset=".32" stop-color="#0b1330" stop-opacity=".45"/>
+      <stop offset=".5"  stop-color="#0b1330" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- ===== filters ===== -->
+    <filter id="ib-blurFar" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <filter id="ib-blurBokeh" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <filter id="ib-bloom" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="3.2" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="ib-softFog" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="26"/>
+    </filter>
+
+    <!-- ===== motion paths (copper streets) ===== -->
+    <path id="ib-path1" d="M600,540 L780,630 L980,530 L1180,630" fill="none"/>
+    <path id="ib-path2" d="M700,724 L900,624 L1120,734" fill="none"/>
+    <path id="ib-path3" d="M664,470 L844,560 L1044,460 L1244,560" fill="none"/>
+    <path id="ib-path4" d="M1010,586 L1180,672 L1244,544" fill="none"/>
+  </defs>
+
+  <!-- ================= BACKDROP ================= -->
+  <rect width="1440" height="900" fill="url(#ib-sky)"/>
+
+  <!-- ambient light pools -->
+  <ellipse class="ib-glowPool" cx="1010" cy="330" rx="620" ry="470" fill="url(#ib-pool)"/>
+  <ellipse class="ib-glowPool" cx="1180" cy="640" rx="360" ry="300" fill="url(#ib-poolGold)"/>
+
+  <!-- volumetric fog bands -->
+  <g>
+    <ellipse class="ib-fog" cx="900" cy="500" rx="520" ry="150" fill="#aeb9ff" filter="url(#ib-softFog)"/>
+    <ellipse class="ib-fog" cx="1150" cy="700" rx="420" ry="120" fill="#e7c667" opacity=".5" filter="url(#ib-softFog)"/>
+  </g>
+
+  <!-- ================= LAYER 1 : FAR (blurred, drifting) ================= -->
+  <g class="ib-parallaxFar" filter="url(#ib-blurFar)" opacity=".55">
+    <!-- distant small chips as faint rhombus tops -->
+    <g fill="#3a54c9" opacity=".8">
+      <polygon points="520,300 560,320 520,340 480,320"/>
+      <polygon points="640,250 676,268 640,286 604,268"/>
+      <polygon points="760,300 792,316 760,332 728,316"/>
+      <polygon points="900,240 936,258 900,276 864,258"/>
+      <polygon points="1040,290 1076,308 1040,326 1004,308"/>
+      <polygon points="1190,250 1226,268 1190,286 1154,268"/>
+      <polygon points="1300,320 1332,336 1300,352 1268,336"/>
+    </g>
+    <g fill="#8fa2f7" opacity=".5">
+      <polygon points="580,360 612,376 580,392 548,376"/>
+      <polygon points="720,340 748,354 720,368 692,354"/>
+      <polygon points="980,360 1012,376 980,392 948,376"/>
+      <polygon points="1120,340 1152,356 1120,372 1088,356"/>
+    </g>
+    <!-- faint copper streets in the distance -->
+    <g stroke="#caa12e" stroke-width="2" opacity=".4" fill="none">
+      <path d="M500,330 L700,430 L920,320"/>
+      <path d="M960,330 L1160,430 L1330,340"/>
+    </g>
+  </g>
+
+  <!-- ================= LAYER 2 : MAIN ISO BOARD (sharp) ================= -->
+  <g class="ib-parallaxMain">
+    <!-- board base plane (subtle) -->
+    <polygon points="560,560 1010,330 1360,540 900,800" fill="#101c46" opacity=".55"/>
+    <polygon points="560,560 1010,330 1360,540 900,800" fill="none" stroke="#3a54c9" stroke-width="1.4" opacity=".35"/>
+
+    <!-- copper / gold streets (traces) -->
+    <g fill="none" stroke-linecap="round">
+      <path d="M600,540 L780,630 L980,530 L1180,630" stroke="url(#ib-copper)" stroke-width="5" opacity=".9"/>
+      <path d="M700,724 L900,624 L1120,734" stroke="url(#ib-copper)" stroke-width="5" opacity=".8"/>
+      <path d="M664,470 L844,560 L1044,460 L1244,560" stroke="url(#ib-trace2)" stroke-width="4" opacity=".85"/>
+      <path d="M1010,586 L1180,672 L1244,544" stroke="url(#ib-copper)" stroke-width="4" opacity=".75"/>
+      <!-- thin branch traces -->
+      <g stroke="#e7c667" stroke-width="2" opacity=".5">
+        <path d="M780,630 L820,690"/>
+        <path d="M980,530 L1020,470"/>
+        <path d="M844,560 L800,610"/>
+        <path d="M1044,460 L1090,500"/>
+      </g>
+    </g>
+
+    <!-- glowing vias along the streets -->
+    <g fill="url(#ib-spark)">
+      <circle class="ib-via d1" cx="600" cy="540" r="6"/>
+      <circle class="ib-via d2" cx="780" cy="630" r="6"/>
+      <circle class="ib-via d3" cx="980" cy="530" r="6"/>
+      <circle class="ib-via d4" cx="1180" cy="630" r="6"/>
+      <circle class="ib-via d5" cx="900" cy="624" r="6"/>
+      <circle class="ib-via d6" cx="1044" cy="460" r="6"/>
+      <circle class="ib-via d2" cx="844" cy="560" r="5"/>
+      <circle class="ib-via d4" cx="1244" cy="560" r="5"/>
+    </g>
+
+    <!-- ========== CHIP TOWERS (iso boxes: top / left dark / right mid) ========== -->
+    <g filter="url(#ib-bloom)">
+
+      <!-- Tower 1 gold (tall) -->
+      <g>
+        <polygon points="676,490 740,522 740,632 676,600" fill="#5a4a12"/>
+        <polygon points="740,522 804,490 804,600 740,632" fill="#8a6a1a"/>
+        <polygon points="740,458 804,490 740,522 676,490" fill="url(#ib-topGold)"/>
+        <polygon points="740,458 804,490 740,522 676,490" fill="none" stroke="#f7e6a8" stroke-width="1" opacity=".7"/>
+      </g>
+
+      <!-- Tower 8 gold -->
+      <g>
+        <polygon points="764,368 812,392 812,452 764,428" fill="#5a4a12"/>
+        <polygon points="812,392 860,368 860,428 812,452" fill="#8a6a1a"/>
+        <polygon points="812,344 860,368 812,392 764,368" fill="url(#ib-topGold)"/>
+      </g>
+
+      <!-- Tower 7 blue -->
+      <g>
+        <polygon points="588,452 636,476 636,540 588,516" fill="#1c2a63"/>
+        <polygon points="636,476 684,452 684,516 636,540" fill="#2a3d94"/>
+        <polygon points="636,428 684,452 636,476 588,452" fill="url(#ib-topBlue)"/>
+      </g>
+
+      <!-- Tower 2 blue -->
+      <g>
+        <polygon points="816,490 880,522 880,592 816,560" fill="#1c2a63"/>
+        <polygon points="880,522 944,490 944,560 880,592" fill="#2a3d94"/>
+        <polygon points="880,458 944,490 880,522 816,490" fill="url(#ib-topBlue)"/>
+        <polygon points="880,458 944,490 880,522 816,490" fill="none" stroke="#bcc9ff" stroke-width="1" opacity=".6"/>
+      </g>
+
+      <!-- Tower 5 emerald (low) -->
+      <g>
+        <polygon points="872,662 930,691 930,739 872,710" fill="#155c3d"/>
+        <polygon points="930,691 988,662 988,710 930,739" fill="#1f8a5c"/>
+        <polygon points="930,633 988,662 930,691 872,662" fill="url(#ib-topEmer)"/>
+      </g>
+
+      <!-- ===== CENTRAL PROCESSOR (hero) ===== -->
+      <g>
+        <!-- pins around base -->
+        <g stroke="#e7c667" stroke-width="3" opacity=".8">
+          <path d="M918,548 L902,556"/><path d="M948,566 L932,574"/>
+          <path d="M978,584 L962,592"/><path d="M1008,602 L992,610"/>
+          <path d="M1078,566 L1094,574"/><path d="M1048,584 L1064,592"/>
+          <path d="M1018,602 L1034,610"/>
+        </g>
+        <polygon points="910,536 1010,586 1010,650 910,600" fill="#4a3a10"/>
+        <polygon points="1010,586 1110,536 1110,600 1010,650" fill="#7a5c16"/>
+        <polygon points="1010,486 1110,536 1010,586 910,536" fill="url(#ib-topGold)"/>
+        <!-- die + grid on top -->
+        <polygon points="1010,512 1070,542 1010,572 950,542" fill="#22326f" opacity=".85"/>
+        <g stroke="#9fb0ff" stroke-width="1" opacity=".7">
+          <path d="M980,527 L1040,557"/><path d="M1010,512 L1010,572"/>
+          <path d="M995,519 L1055,549"/><path d="M965,534 L1025,564"/>
+        </g>
+        <circle class="ib-via d3" cx="1010" cy="542" r="7" fill="url(#ib-spark)"/>
+        <polygon points="1010,486 1110,536 1010,586 910,536" fill="none" stroke="#f7e6a8" stroke-width="1.4" opacity=".8"/>
+      </g>
+
+      <!-- Tower 4 blue (tall) -->
+      <g>
+        <polygon points="1092,444 1150,473 1150,569 1092,540" fill="#1c2a63"/>
+        <polygon points="1150,473 1208,444 1208,540 1150,569" fill="#2a3d94"/>
+        <polygon points="1150,415 1208,444 1150,473 1092,444" fill="url(#ib-topBlue)"/>
+        <polygon points="1150,415 1208,444 1150,473 1092,444" fill="none" stroke="#bcc9ff" stroke-width="1" opacity=".6"/>
+      </g>
+
+      <!-- Tower 6 gold (tall, right) -->
+      <g>
+        <polygon points="1136,544 1190,571 1190,697 1136,670" fill="#5a4a12"/>
+        <polygon points="1190,571 1244,544 1244,670 1190,697" fill="#8a6a1a"/>
+        <polygon points="1190,517 1244,544 1190,571 1136,544" fill="url(#ib-topGold)"/>
+      </g>
+
+    </g>
+
+    <!-- ===== DATA PULSES on the streets (SMIL animateMotion) ===== -->
+    <g fill="url(#ib-spark)">
+      <circle r="5">
+        <animateMotion dur="5.5s" repeatCount="indefinite" rotate="auto">
+          <mpath xlink:href="#ib-path1"/>
+        </animateMotion>
+      </circle>
+      <circle r="4">
+        <animateMotion dur="5.5s" begin="2.7s" repeatCount="indefinite">
+          <mpath xlink:href="#ib-path1"/>
+        </animateMotion>
+      </circle>
+      <circle r="5">
+        <animateMotion dur="6.5s" repeatCount="indefinite">
+          <mpath xlink:href="#ib-path2"/>
+        </animateMotion>
+      </circle>
+      <circle r="4.5">
+        <animateMotion dur="7s" begin="1.5s" repeatCount="indefinite">
+          <mpath xlink:href="#ib-path3"/>
+        </animateMotion>
+      </circle>
+      <circle r="4">
+        <animateMotion dur="7s" begin="4.2s" repeatCount="indefinite">
+          <mpath xlink:href="#ib-path3"/>
+        </animateMotion>
+      </circle>
+      <circle r="4.5">
+        <animateMotion dur="5s" repeatCount="indefinite">
+          <mpath xlink:href="#ib-path4"/>
+        </animateMotion>
+      </circle>
+    </g>
+
+    <!-- floating spark twinkles above the city -->
+    <g fill="#ffffff">
+      <circle class="ib-twinkle"    cx="820" cy="420" r="1.6"/>
+      <circle class="ib-twinkle t2" cx="1050" cy="440" r="2"/>
+      <circle class="ib-twinkle t3" cx="960" cy="380" r="1.4"/>
+      <circle class="ib-twinkle t4" cx="1170" cy="470" r="1.8"/>
+      <circle class="ib-twinkle t5" cx="700" cy="460" r="1.5"/>
+    </g>
+  </g>
+
+  <!-- ================= LAYER 3 : FOREGROUND BOKEH (blur 12, floating) ================= -->
+  <g filter="url(#ib-blurBokeh)">
+    <circle class="ib-bokehA" cx="1230" cy="250" r="90"  fill="url(#ib-bokehGold)"/>
+    <circle class="ib-bokehB" cx="330"  cy="720" r="120" fill="url(#ib-bokehBlue)"/>
+    <circle class="ib-bokehC" cx="1120" cy="820" r="70"  fill="url(#ib-bokehGold)"/>
+    <circle class="ib-bokehA" cx="640"  cy="180" r="60"  fill="url(#ib-bokehBlue)"/>
+    <circle class="ib-bokehB" cx="1360" cy="470" r="80"  fill="url(#ib-bokehGold)"/>
+  </g>
+
+  <!-- ================= ATMOSPHERE OVERLAYS ================= -->
+  <!-- left third darker (login card sits here) -->
+  <rect width="1440" height="900" fill="url(#ib-leftFade)"/>
+  <!-- cinematic vignette -->
+  <rect width="1440" height="900" fill="url(#ib-vignette)"/>
+  <!-- slow scan sheen -->
+  <rect class="ib-scan" x="0" y="300" width="1440" height="140" fill="#9fb0ff" opacity=".04"/>
+</svg>

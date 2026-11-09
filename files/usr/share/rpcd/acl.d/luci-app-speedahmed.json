@@ -1,0 +1,23 @@
+{
+  "luci-app-speedahmed": {
+    "description": "Grant minimal access for luci-app-speedahmed",
+    "read": {
+      "ubus": {
+        "file": [ "read" ]
+      },
+      "file": {
+        "/tmp/speed_luci_client.log": [ "read" ],
+        "/tmp/speed_luci_server.log": [ "read" ]
+      }
+    },
+    "write": {
+      "ubus": {
+        "file": [ "exec" ],
+        "luci": [ "setInitAction", "setLocaltime", "setPassword" ]
+      },
+      "file": {
+        "/usr/libexec/speed_luci_runner": [ "exec" ]
+      }
+    }
+  }
+}

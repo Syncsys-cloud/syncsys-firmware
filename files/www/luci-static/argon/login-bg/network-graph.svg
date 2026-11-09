@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="ng-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1e2c66"/><stop offset="55%" stop-color="#142051"/><stop offset="100%" stop-color="#0b1330"/></linearGradient>
+    <radialGradient id="ng-halo" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#3a54c9" stop-opacity=".45"/><stop offset="100%" stop-color="#3a54c9" stop-opacity="0"/></radialGradient>
+    <filter id="ng-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <style>
+      .ng-e{stroke:#5f76d6;stroke-width:1.4;opacity:.30}
+      .ng-hub{fill:#8fa2f7}
+      .ng-gold{fill:#e7c667}
+      @keyframes ngPulse{0%,100%{r:6;opacity:.85}50%{r:10;opacity:1}}
+      .ng-p{animation:ngPulse 3.2s ease-in-out infinite}
+      @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="url(#ng-bg)"/>
+  <circle cx="760" cy="430" r="440" fill="url(#ng-halo)"/>
+
+  <!-- الحواف -->
+  <g>
+    <path id="ngE1" class="ng-e" d="M300 240 L620 300"/>
+    <path id="ngE2" class="ng-e" d="M620 300 L980 220"/>
+    <path id="ngE3" class="ng-e" d="M620 300 L760 560"/>
+    <path id="ngE4" class="ng-e" d="M980 220 L1200 420"/>
+    <path id="ngE5" class="ng-e" d="M760 560 L1080 640"/>
+    <path id="ngE6" class="ng-e" d="M760 560 L420 620"/>
+    <path id="ngE7" class="ng-e" d="M300 240 L420 620"/>
+    <path id="ngE8" class="ng-e" d="M980 220 L760 560"/>
+  </g>
+
+  <!-- حزم بيانات تتنقّل على الحواف -->
+  <g filter="url(#ng-glow)">
+    <rect x="-3" y="-3" width="6" height="6" rx="1.5" fill="#e7c667"><animateMotion dur="2.4s" repeatCount="indefinite"><mpath href="#ngE1"/></animateMotion></rect>
+    <rect x="-3" y="-3" width="6" height="6" rx="1.5" fill="#8fa2f7"><animateMotion dur="2.8s" repeatCount="indefinite" begin=".4s"><mpath href="#ngE2"/></animateMotion></rect>
+    <rect x="-3" y="-3" width="6" height="6" rx="1.5" fill="#e7c667"><animateMotion dur="2.6s" repeatCount="indefinite" begin=".9s"><mpath href="#ngE3"/></animateMotion></rect>
+    <rect x="-3" y="-3" width="6" height="6" rx="1.5" fill="#8fa2f7"><animateMotion dur="3s" repeatCount="indefinite" begin="1.3s"><mpath href="#ngE4"/></animateMotion></rect>
+    <rect x="-3" y="-3" width="6" height="6" rx="1.5" fill="#e7c667"><animateMotion dur="2.5s" repeatCount="indefinite" begin=".7s"><mpath href="#ngE5"/></animateMotion></rect>
+    <rect x="-3" y="-3" width="6" height="6" rx="1.5" fill="#8fa2f7"><animateMotion dur="2.7s" repeatCount="indefinite" begin="1.6s"><mpath href="#ngE6"/></animateMotion></rect>
+    <rect x="-3" y="-3" width="6" height="6" rx="1.5" fill="#e7c667"><animateMotion dur="3.2s" repeatCount="indefinite" begin=".2s"><mpath href="#ngE8"/></animateMotion></rect>
+  </g>
+
+  <!-- العقد -->
+  <g>
+    <circle class="ng-hub ng-p" cx="300" cy="240" r="7"/>
+    <circle class="ng-gold ng-p" cx="620" cy="300" r="8" style="animation-delay:.5s"/>
+    <circle class="ng-hub ng-p" cx="980" cy="220" r="7" style="animation-delay:1s"/>
+    <circle class="ng-hub ng-p" cx="1200" cy="420" r="6" style="animation-delay:1.5s"/>
+    <circle class="ng-gold ng-p" cx="760" cy="560" r="9" style="animation-delay:.8s"/>
+    <circle class="ng-hub ng-p" cx="1080" cy="640" r="6" style="animation-delay:1.2s"/>
+    <circle class="ng-hub ng-p" cx="420" cy="620" r="6" style="animation-delay:2s"/>
+  </g>
+</svg>

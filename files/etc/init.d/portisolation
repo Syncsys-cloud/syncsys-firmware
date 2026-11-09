@@ -1,0 +1,137 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+USE_PROCD=1
+
+RUNTIME="/usr/libexec/portisolation/apply.sh"
+MONITOR="/usr/libexec/portisolation/monitor.sh"
+EXTRA_COMMANDS="apply rollback status validate check safe_apply confirm_safe_apply cancel_safe_apply safe_status loopd_unpunish loopd_refresh"
+EXTRA_HELP="        apply               Apply configured isolation\n        rollback            Restore saved state\n        status              Print current status\n        validate            Validate prerequisites\n        check               Run one monitoring cycle\n        safe_apply          Apply with auto-rollback timer\n        confirm_safe_apply  Confirm pending safe apply\n        cancel_safe_apply   Cancel pending safe apply\n        safe_status         Print safe apply status\n        loopd_unpunish P    Clear loopd penalty on port P (or all)\n        loopd_refresh P     Bounce+clear loopd penalty on port P (or all)\n"
+
+LOOPD_CTL="/tmp/loopd.ctl"
+
+loopd_send_ctl() {
+	local action="$1" port="$2"
+	[ -n "$port" ] || port="all"
+	printf "%s %s\n" "$action" "$port" >> "$LOOPD_CTL"
+	local pid
+	pid="$(pidof loopd)"
+	[ -n "$pid" ] && kill -USR1 $pid 2>/dev/null
+	init_log "loopd ctl: $action $port (pid=${pid:-none})"
+}
+
+init_log() {
+	logger -t portisolation "[INIT] $*"
+}
+
+start_service() {
+	init_log "start_service begin runtime=$RUNTIME monitor=$MONITOR"
+
+	"$RUNTIME" boot_recover
+	init_log "boot_recover rc=$?"
+
+	"$RUNTIME" apply
+	init_log "initial apply rc=$?"
+
+	config_load portisolation
+	local enabled monitor_enabled loopd_enabled
+	config_get enabled main enabled "0"
+	config_get monitor_enabled main monitor_enabled "1"
+	config_get loopd_enabled main loopd_enabled "1"
+	init_log "config loaded enabled=$enabled monitor_enabled=$monitor_enabled loopd_enabled=$loopd_enabled"
+
+	if [ "$enabled" = "1" ] && [ "$monitor_enabled" = "1" ]; then
+		init_log "starting monitor daemon"
+		procd_open_instance monitor
+		procd_set_param command "$MONITOR" daemon
+		procd_set_param respawn 3600 5 5
+		procd_close_instance
+	else
+		init_log "monitor daemon skipped"
+	fi
+
+	if [ "$enabled" = "1" ] && [ "$loopd_enabled" = "1" ]; then
+		init_log "starting loopd daemon"
+		procd_open_instance loopd
+		procd_set_param command /usr/sbin/loopd
+		procd_set_param respawn 3600 5 0
+		procd_set_param nice -10
+		procd_close_instance
+	else
+		init_log "loopd daemon skipped"
+	fi
+}
+
+stop_service() {
+	init_log "stop_service: stopping daemons only (baseline protection preserved)"
+}
+
+teardown() {
+	init_log "manual teardown: removing baseline protection"
+	"$RUNTIME" rollback
+}
+
+reload_service() {
+	init_log "reload_service begin"
+	stop
+	start
+}
+
+service_triggers() {
+	procd_add_reload_trigger "portisolation" "network" "wireless"
+}
+
+apply() {
+	init_log "manual apply invoked"
+	"$RUNTIME" apply
+}
+
+rollback() {
+	init_log "manual rollback invoked"
+	"$RUNTIME" rollback
+}
+
+status() {
+	init_log "manual status invoked"
+	"$RUNTIME" status
+}
+
+validate() {
+	init_log "manual validate invoked"
+	"$RUNTIME" validate
+}
+
+check() {
+	init_log "manual check invoked"
+	"$RUNTIME" check
+}
+
+safe_apply() {
+	init_log "manual safe_apply invoked args=$*"
+	"$RUNTIME" safe_apply "$@"
+}
+
+confirm_safe_apply() {
+	init_log "manual confirm_safe_apply invoked"
+	"$RUNTIME" confirm_safe_apply
+}
+
+cancel_safe_apply() {
+	init_log "manual cancel_safe_apply invoked"
+	"$RUNTIME" cancel_safe_apply
+}
+
+safe_status() {
+	init_log "manual safe_status invoked"
+	"$RUNTIME" safe_status
+}
+
+loopd_unpunish() {
+	init_log "manual loopd_unpunish invoked port=$1"
+	loopd_send_ctl "unpunish" "$1"
+}
+
+loopd_refresh() {
+	init_log "manual loopd_refresh invoked port=$1"
+	loopd_send_ctl "refresh" "$1"
+}

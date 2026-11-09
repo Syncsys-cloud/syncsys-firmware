@@ -1,0 +1,13 @@
+{
+	"admin/Ahmed": {
+		"title": "الرئيسية",
+		"order": 1,
+		"action": {
+			"type": "view",
+			"path": "maindash/maindash"
+		},
+		"depends": {
+			"acl": [ "luci-app-maindash" ]
+		}
+	}
+}

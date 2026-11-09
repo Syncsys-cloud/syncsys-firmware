@@ -1,0 +1,21 @@
+
+config lldpd 'config'
+	option enable_cdp '1'
+	option enable_fdp '0'
+	option enable_sonmp '0'
+	option enable_edp '0'
+	option lldp_class '4'
+	option lldp_location 'address country EU'
+	list interface 'loopback'
+	list interface 'lan'
+	option enabled '1'
+	option lldp_capability_advertisements '1'
+	option lldp_mgmt_addr_advertisements '1'
+	option lldp_tx_interval '30'
+	option lldp_tx_hold '4'
+	option readonly_mode '0'
+	option lldp_portidsubtype 'macaddress'
+	option lldp_agenttype 'nearest-bridge'
+	option cdp_version 'cdpv1v2'
+	option lldp_description "SAKHER@T6gs_qihoo"
+

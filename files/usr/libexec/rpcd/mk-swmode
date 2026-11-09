@@ -1,0 +1,18 @@
+#!/bin/sh
+
+BACKEND="/usr/libexec/mk-swmode/backend"
+
+if [ ! -x "$BACKEND" ]; then
+	printf '%s\n' '{"error":"Protected mk-swmode backend is unavailable"}'
+	exit 1
+fi
+
+case "$1" in
+	call)
+		RPCD_INPUT="$(cat 2>/dev/null)"
+		exec "$BACKEND" "$1" "$2" "$RPCD_INPUT"
+		;;
+	*)
+		exec "$BACKEND" "$@"
+		;;
+esac

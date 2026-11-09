@@ -1,0 +1,13 @@
+config awed 'settings'
+	option enabled '0'
+	option houre '6'
+	list channels_2g '1'
+	list channels_2g '6'
+	list channels_2g '11'
+	list channels_5g '36'
+	list channels_5g '40'
+	list channels_5g '44'
+	option enabled_2g '0'
+	option enabled_5g '0'
+
+

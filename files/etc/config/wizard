@@ -1,0 +1,14 @@
+
+config wizard 'default'
+	option wifi_ssid 'XiaomiCR6609_Pro'
+	option lan_ipaddr '192.168.1.21'
+	option lan_netmask '255.255.255.0'
+	option MKSettings 'AP'
+	option IPADD '192.168.1.21'
+	option SSID2G 'XiaomiCR6609_Pro'
+	option CH2G 'auto'
+	option CH5G '36'
+	option STOPREST '0'
+	option CHWidte 'auto'
+	option VLANID '50'
+

@@ -1,0 +1,467 @@
+:root {
+  --glass-radius: 18px;
+  --glass-blur: 22px;
+  --glass-border-light: rgba(255, 255, 255, 0.65);
+  --glass-border-dark: rgba(148, 163, 184, 0.7);
+  --glass-bg-light: rgba(255, 255, 255, 0.72);
+  --glass-bg-dark: rgba(15, 23, 42, 0.86);
+  --shadow-soft-light: 0 18px 45px rgba(15, 23, 42, 0.12);
+  --shadow-soft-dark: 0 20px 55px rgba(0, 0, 0, 0.7);
+  --text-main-light: #111827;
+  --text-sub-light: #4b5563;
+  --text-main-dark: #e5e7eb;
+  --text-sub-dark: #9ca3af;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(94, 114, 228, 0.2), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(45, 212, 191, 0.18), transparent 55%),
+    #edf2ff;
+  color: var(--text-main-light);
+}
+.main {
+  background: transparent;
+}
+.main-right {
+  background: transparent;
+}
+
+header.bg-primary {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--glass-bg-light);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--glass-border-light);
+  box-shadow: var(--shadow-soft-light);
+}
+
+.cbi-section,
+.system-infobox,
+.ifacebox,
+.alert-message,
+.Dashboard .dashboard-bg,
+#content_syslog,
+#syslog,
+.commandbox {
+  background: var(--glass-bg-light);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--glass-radius);
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--shadow-soft-light);
+}
+
+.cbi-section {
+  margin: 0.85rem 0;
+  padding: 1.1rem 1.4rem;
+}
+
+.system-infobox {
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+}
+
+h2,
+h3,
+.panel-title {
+  background: transparent;
+  color: var(--text-main-light);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  padding-bottom: 0.4rem;
+}
+
+.cbi-section > h3 {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+.cbi-section > h3::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  margin-left: 0.75rem;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.7), transparent);
+}
+
+table,
+.table {
+  border-radius: 14px;
+  overflow: hidden;
+}
+table > tbody > tr:nth-of-type(2n),
+.table > .tbody > .tr:nth-of-type(2n) {
+  background-color: rgba(148, 163, 184, 0.1);
+}
+
+.cbi-button,
+.btn,
+button,
+input[type="submit"],
+input[type="button"] {
+  border-radius: 999px !important;
+  border: none;
+  padding: 0.45rem 1.1rem;
+  font-weight: 500;
+  background: linear-gradient(135deg, var(--primary), #00bcd4) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.35);
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    opacity 0.12s ease;
+}
+.cbi-button:hover,
+.btn:hover,
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 35px rgba(15, 23, 42, 0.45);
+  opacity: 0.95;
+}
+input,
+select,
+textarea,
+.cbi-input-textarea,
+.cbi-dropdown {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.65) !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  padding: 0.45rem 0.75rem;
+  box-shadow: none;
+}
+textarea,
+.cbi-input-textarea {
+  border-radius: 16px;
+}
+input:focus,
+select:focus,
+textarea:focus,
+.cbi-dropdown:focus {
+  outline: none;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px rgba(94, 114, 228, 0.4);
+}
+
+.status span[data-style="active"] {
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background:
+      radial-gradient(circle at 0% 0%, rgba(94, 114, 228, 0.4), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(45, 212, 191, 0.35), transparent 55%),
+      #020617;
+    color: var(--text-main-dark);
+  }
+  header.bg-primary {
+    background: var(--glass-bg-dark);
+    border-bottom-color: var(--glass-border-dark);
+    box-shadow: var(--shadow-soft-dark);
+  }
+  .main-left {
+    background: rgba(15, 23, 42, 0.95);
+    border-right-color: var(--glass-border-dark);
+  }
+  .main-left .nav li a {
+    color: #cbd5f5;
+  }
+  .main-left .nav li a:hover {
+    background: rgba(15, 23, 42, 0.85);
+  }
+  .cbi-section,
+  .system-infobox,
+  .ifacebox,
+  .alert-message,
+  .Dashboard .dashboard-bg,
+  #content_syslog,
+  #syslog,
+  .commandbox {
+    background: var(--glass-bg-dark);
+    border-color: var(--glass-border-dark);
+    box-shadow: var(--shadow-soft-dark);
+  }
+  .system-infobox {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(148, 163, 184, 0.85);
+  }
+  h2,
+  h3,
+  .panel-title {
+    color: var(--text-main-dark);
+    border-bottom-color: rgba(55, 65, 81, 0.9);
+  }
+  table > tbody > tr:nth-of-type(2n),
+  .table > .tbody > .tr:nth-of-type(2n) {
+    background-color: rgba(15, 23, 42, 0.9);
+  }
+  input,
+  select,
+  textarea,
+  .cbi-input-textarea,
+  .cbi-dropdown {
+    background: rgba(15, 23, 42, 0.9) !important;
+    color: var(--text-main-dark);
+    border-color: rgba(55, 65, 81, 0.9) !important;
+  }
+  .status span[data-style="active"] {
+    background: rgba(22, 163, 74, 0.18);
+    color: #bbf7d0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  header .container {
+    padding-inline: 0.9rem;
+  }
+  #maincontent .container {
+    padding-inline: 0.9rem;
+  }
+  .cbi-section,
+  .Dashboard .dashboard-bg {
+    padding: 1rem 0.85rem;
+  }
+  .main-left .nav li a {
+    border-radius: 12px;
+    padding-inline: 0.75rem;
+  }
+  .cbi-section {
+    padding: 0.9rem 0.75rem;
+    margin: 0.65rem 0;
+  }
+}
+
+.cbi-section .ifacebox {
+  display: inline-block;
+  vertical-align: top;
+  min-width: 160px;
+  max-width: 260px;
+  margin: 0.35rem 0.45rem !important;
+  padding: 0.55rem 0.75rem !important;
+  border-radius: 16px;
+  background: radial-gradient(circle at 0% 0%,
+    rgba(255, 255, 255, 0.98),
+    rgba(255, 255, 255, 0.85)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28);
+
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cbi-section .ifacebox {
+    background: radial-gradient(circle at 0% 0%,
+      rgba(30, 64, 175, 0.96),
+      rgba(15, 23, 42, 0.98)
+    );
+    border-color: rgba(148, 163, 184, 0.9);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
+  }
+}
+
+@media (max-width: 768px) {
+  .cbi-section .ifacebox {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
+.router-status-wifi {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.router-status-wifi .wifi-info {
+  background: var(--glass-bg-light);
+  border-radius: var(--glass-radius);
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--shadow-soft-light);
+  padding: 0.9rem 1rem 1.1rem;
+  margin-bottom: 0.2rem;
+}
+
+.router-status-wifi .wifi-info .title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.router-status-wifi .wifi-info .title img {
+  max-width: 32px;
+  height: auto;
+}
+.router-status-wifi .wifi-info .title h3 {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.router-status-wifi .settings-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.85rem;
+}
+
+.router-status-wifi .radio-info {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+  padding: 0.7rem 0.9rem;
+  box-sizing: border-box;
+}
+
+.router-status-wifi .radio-info p {
+  margin: 0.15rem 0;
+  font-size: 0.78rem;
+}
+
+.router-status-wifi .radio-info .label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+.router-status-wifi .radio-info .label-success {
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+}
+
+@media (prefers-color-scheme: dark) {
+  .router-status-wifi .wifi-info {
+    background: var(--glass-bg-dark);
+    border-color: var(--glass-border-dark);
+    box-shadow: var(--shadow-soft-dark);
+  }
+  .router-status-wifi .radio-info {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: rgba(55, 65, 81, 0.9);
+    box-shadow: 0 16px 35px rgba(0, 0, 0, 0.8);
+  }
+  .router-status-wifi .radio-info .label-success {
+    background: rgba(22, 163, 74, 0.25);
+    color: #bbf7d0;
+  }
+}
+
+@media (max-width: 768px) {
+  .router-status-wifi .settings-info {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.system-infobox {
+
+  flex: 1 1 0;
+  min-width: 150px;
+  margin: 0 .5em;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+
+  font-size: 0.8rem;
+
+  direction: rtl;
+}
+
+.system-infobox-label {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.system-infobox-value {
+  font-family: monospace;
+  direction: ltr;
+  text-align: left;
+}
+
+.maindash-page {
+  direction: rtl;
+  text-align: right;
+}
+
+.maindash-page table, .maindash-page .table {
+  direction: rtl;
+  text-align: right;
+}
+
+.system-info {
+    font-size: 12px; 
+    margin-right: 10px; 
+    padding: 5px 0; 
+}
+
+@media (max-width: 500px) {
+    .system-info {
+        display: none; 
+    }
+	header.bg-primar{
+	direction :ltr !important; 
+	}
+}
+header::after {
+  content: "";
+  position: absolute;
+  height: 2rem;
+  width: 100%;
+  background-color: var(--primary) !important;
+  background-color: #5e72e4 !important;
+
+  background-color:rgba(255, 255, 255, 0) !important;
+}
+@media (min-width: 500px) {
+.main-right {
+    direction: rtl;  
+    text-align: right; 
+}
+
+header.bg-primary {
+direction :rtl;
+  background: var(--glass-bg-light) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+  border-bottom: 1px solid var(--glass-border-light) !important;
+  box-shadow: var(--shadow-soft-light) !important;
+  color: var(--text-main-light) !important;
+}
+}
+@media (prefers-color-scheme: dark) {
+  header::after {
+    background-color: var(--primary) !important;
+      background-color:rgba(255, 255, 255, 0) !important;
+  }
+  header.bg-primary {
+
+    background: var(--glass-bg-dark) !important;
+    border-bottom-color: var(--glass-border-dark) !important;
+    box-shadow: var(--shadow-soft-dark) !important;
+    color: var(--text-main-dark) !important;
+  }
+}
+#indicators{
+  display: none;
+}

@@ -1,0 +1,130 @@
+{
+  "comment": "قاعدة بيانات مرجعية محلية لكل جهاز — المفتاح هو board_name من /tmp/sysinfo/board_name. تُستخدم كمصدر احتياطي عندما تتعذر القراءة الحية. المصادر: OpenWrt PR#4118 + WikiDevi + MediaTek datasheets (جُمعت 2026-07-13).",
+  "schema": {
+    "name": "الاسم التجاري للجهاز",
+    "cpu": {
+      "soc": "اسم الـ SoC",
+      "cores": "أنوية فيزيائية",
+      "threads": "خيوط",
+      "freq_mhz": "التردد المرجعي"
+    },
+    "memory": {
+      "dram_type": "نوع الرام",
+      "dram_vendor": "مصنّع/موديل الشريحة",
+      "dram_clock": "تردد الرام"
+    },
+    "storage": {
+      "chip_model": "موديل شريحة الفلاش"
+    },
+    "network": {
+      "switch_model": "موديل السويتش"
+    },
+    "wifi": {
+      "chip": "شرائح الواي فاي",
+      "class": "فئة السرعة"
+    },
+    "notes": "ملاحظات حرة"
+  },
+  "devices": {
+    "xiaomi,mi-router-cr6609": {
+      "name": "Xiaomi Mi Router CR6609 (China Telecom)",
+      "cpu": {
+        "soc": "MediaTek MT7621AT",
+        "cores": 2,
+        "threads": 4,
+        "freq_mhz": 880
+      },
+      "memory": {
+        "dram_type": "DDR3 SDRAM 256MB",
+        "dram_vendor": "ESMT M15T2G16128A",
+        "dram_clock": "حتى 1200 MT/s (حد متحكم MT7621)"
+      },
+      "storage": {
+        "chip_model": "NAND 128MB SLC — ESMT F59L1G81MB أو Samsung K9F1G08U0F (حسب دفعة الإنتاج)"
+      },
+      "network": {
+        "switch_model": "MT7530 (مدمج في MT7621، ‏5 منافذ جيجابت)"
+      },
+      "wifi": {
+        "chip": "MediaTek MT7905DAN + MT7975DN (يُعرّف كـ MT7915E)",
+        "class": "AX1800 Wi-Fi 6 — ‏2x2 574Mbps@2.4GHz + 2x2 1201Mbps@5GHz"
+      },
+      "notes": "جهاز المرجع الأول لمعمارية ramips/mt7621 — سلسلة CR660x بلوحة موحدة"
+    },
+    "xiaomi,mi-router-cr6606": {
+      "name": "Xiaomi Mi Router CR6606 (China Unicom)",
+      "cpu": {
+        "soc": "MediaTek MT7621AT",
+        "cores": 2,
+        "threads": 4,
+        "freq_mhz": 880
+      },
+      "memory": {
+        "dram_type": "DDR3 SDRAM 256MB",
+        "dram_vendor": "ESMT M15T2G16128A",
+        "dram_clock": "حتى 1200 MT/s (حد متحكم MT7621)"
+      },
+      "storage": {
+        "chip_model": "NAND 128MB SLC — ESMT F59L1G81MB (حسب دفعة الإنتاج)"
+      },
+      "network": {
+        "switch_model": "MT7530 (مدمج في MT7621، ‏5 منافذ جيجابت)"
+      },
+      "wifi": {
+        "chip": "MediaTek MT7905DAN + MT7975DN (يُعرّف كـ MT7915E)",
+        "class": "AX1800 Wi-Fi 6 — ‏2x2 574Mbps@2.4GHz + 2x2 1201Mbps@5GHz"
+      },
+      "notes": "شقيق CR6609 بنفس اللوحة — سلسلة CR660x"
+    },
+    "xiaomi,mi-router-cr6608": {
+      "name": "Xiaomi Mi Router CR6608 (China Mobile)",
+      "cpu": {
+        "soc": "MediaTek MT7621AT",
+        "cores": 2,
+        "threads": 4,
+        "freq_mhz": 880
+      },
+      "memory": {
+        "dram_type": "DDR3 SDRAM 256MB",
+        "dram_vendor": "ESMT M15T2G16128A",
+        "dram_clock": "حتى 1200 MT/s (حد متحكم MT7621)"
+      },
+      "storage": {
+        "chip_model": "NAND 128MB SLC — ESMT F59L1G81MB (حسب دفعة الإنتاج)"
+      },
+      "network": {
+        "switch_model": "MT7530 (مدمج في MT7621، ‏5 منافذ جيجابت)"
+      },
+      "wifi": {
+        "chip": "MediaTek MT7905DAN + MT7975DN (يُعرّف كـ MT7915E)",
+        "class": "AX1800 Wi-Fi 6 — ‏2x2 574Mbps@2.4GHz + 2x2 1201Mbps@5GHz"
+      },
+      "notes": "شقيق CR6609 بنفس اللوحة — سلسلة CR660x"
+    },
+    "qihoo,360t6gs": {
+      "name": "Qihoo 360T6GS (Wi-Fi 6 AX1800/AX3000)",
+      "cpu": {
+        "soc": "MediaTek MT7621AT",
+        "cores": 2,
+        "threads": 4,
+        "freq_mhz": 880
+      },
+      "memory": {
+        "dram_type": "DDR3 SDRAM 256MB",
+        "dram_vendor": "ESMT / Nanya 256MB",
+        "dram_clock": "حتى 1200 MT/s (حد متحكم MT7621)"
+      },
+      "storage": {
+        "chip_model": "NAND 128MB SLC (SPI-NAND)"
+      },
+      "network": {
+        "switch_model": "MT7530 (مدمج في MT7621، 4 منافذ جيجابت)"
+      },
+      "wifi": {
+        "chip": "MediaTek MT7915D + MT7975D",
+        "class": "Wi-Fi 6 — 3x3 MIMO 2.4GHz + 5GHz"
+      },
+      "notes": "راوتر Qihoo 360T6GS بنظام الملكي الكامل v3.3"
+    }
+  }
+}

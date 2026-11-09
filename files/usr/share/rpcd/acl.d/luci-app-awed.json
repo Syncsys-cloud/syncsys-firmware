@@ -1,0 +1,12 @@
+{
+  "luci-app-awed": {
+    "description": "Allow configuration of AWED",
+    "read": {
+      "uci": ["awed" , "wireless" ]
+    },
+    "write": {
+      "uci": ["awed"]
+    }
+  }
+}
+

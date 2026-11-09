@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="cm-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#182450"/><stop offset="55%" stop-color="#101a3e"/><stop offset="100%" stop-color="#080f26"/></linearGradient>
+    <linearGradient id="cm-scan" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e7c667" stop-opacity="0"/><stop offset="50%" stop-color="#e7c667" stop-opacity=".5"/><stop offset="100%" stop-color="#e7c667" stop-opacity="0"/></linearGradient>
+    <pattern id="cm-grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0 H0 V60" fill="none" stroke="#2c3f82" stroke-width="1" opacity=".35"/></pattern>
+    <g id="cm-chip">
+      <rect x="-22" y="-22" width="44" height="44" rx="7" fill="#22326f" stroke="#5f76d6" stroke-width="1.4"/>
+      <rect x="-12" y="-12" width="24" height="24" rx="3" fill="none" stroke="#e7c667" stroke-width="1.2" opacity=".8"/>
+      <g stroke="#8fa2f7" stroke-width="1.6">
+        <line x1="-22" y1="-8" x2="-30" y2="-8"/><line x1="-22" y1="8" x2="-30" y2="8"/>
+        <line x1="22" y1="-8" x2="30" y2="-8"/><line x1="22" y1="8" x2="30" y2="8"/>
+        <line x1="-8" y1="-22" x2="-8" y2="-30"/><line x1="8" y1="-22" x2="8" y2="-30"/>
+        <line x1="-8" y1="22" x2="-8" y2="30"/><line x1="8" y1="22" x2="8" y2="30"/>
+      </g>
+    </g>
+    <filter id="cm-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <style>
+      @keyframes cmBlink{0%,100%{opacity:.35}50%{opacity:1}}
+      @keyframes cmScan{0%{transform:translateX(-200px)}100%{transform:translateX(1640px)}}
+      @keyframes cmBit{0%{transform:translateY(0);opacity:0}12%{opacity:.9}88%{opacity:.9}100%{transform:translateY(-200px);opacity:0}}
+      .cm-blink{animation:cmBlink 2.6s ease-in-out infinite}
+      .cm-scanbar{animation:cmScan 6s linear infinite}
+      .cm-bit{font-family:monospace;font-size:16px;fill:#5fd0a0;animation:cmBit 6s linear infinite}
+      @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="url(#cm-bg)"/>
+  <rect width="1440" height="900" fill="url(#cm-grid)"/>
+
+  <!-- مصفوفة الرقائق -->
+  <g filter="url(#cm-glow)">
+    <use href="#cm-chip" x="300" y="250"/>
+    <use href="#cm-chip" x="540" y="250" class="cm-blink"/>
+    <use href="#cm-chip" x="780" y="250"/>
+    <use href="#cm-chip" x="1020" y="250" class="cm-blink" style="animation-delay:1s"/>
+    <use href="#cm-chip" x="420" y="470" class="cm-blink" style="animation-delay:.6s"/>
+    <use href="#cm-chip" x="660" y="470"/>
+    <use href="#cm-chip" x="900" y="470" class="cm-blink" style="animation-delay:1.4s"/>
+    <use href="#cm-chip" x="1140" y="470"/>
+    <use href="#cm-chip" x="540" y="680"/>
+    <use href="#cm-chip" x="780" y="680" class="cm-blink" style="animation-delay:.9s"/>
+  </g>
+
+  <!-- بتّات ثنائية تسري -->
+  <g>
+    <text class="cm-bit" x="360" y="820">1011</text>
+    <text class="cm-bit" x="700" y="840" style="animation-delay:2s">0110</text>
+    <text class="cm-bit" x="980" y="820" style="animation-delay:3.4s">1101</text>
+    <text class="cm-bit" x="1180" y="850" style="animation-delay:1.2s">0011</text>
+  </g>
+
+  <!-- خطّ المسح -->
+  <rect class="cm-scanbar" x="0" y="0" width="200" height="900" fill="url(#cm-scan)"/>
+</svg>

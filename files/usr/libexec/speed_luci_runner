@@ -1,0 +1,209 @@
+#!/bin/sh
+set -eu
+
+PIDFILE="/var/run/speed_luci_server.pid"
+SERVER_LOG="/tmp/speed_luci_server.log"
+CLIENT_LOG="/tmp/speed_luci_client.log"
+IPERF_BIN="$(command -v iperf3 || true)"
+
+log() { echo "$(date -Iseconds) $*" >&2; }
+err() { echo "$(date -Iseconds) ERROR: $*" >&2; }
+
+ensure_iperf() {
+  if [ -z "$IPERF_BIN" ]; then
+    err "iperf3 not found (opkg install iperf3)"
+    exit 4
+  fi
+}
+
+detect_iperf_pid() {
+  logfile="$1"
+  port="$2"
+
+  if [ -n "$logfile" ]; then
+    pid="$(ps w | grep -F "iperf3" | grep -F -- "--logfile $logfile" | awk '{print $1}' | head -n1 || true)"
+    if [ -n "$pid" ]; then
+      echo "$pid"
+      return 0
+    fi
+    pid="$(ps w | grep -F "iperf3" | grep -F -- "--logfile=$logfile" | awk '{print $1}' | head -n1 || true)"
+    if [ -n "$pid" ]; then
+      echo "$pid"
+      return 0
+    fi
+  fi
+
+  if [ -n "$port" ]; then
+    pid="$(ps w | grep -F "iperf3" | grep -F -- "-p $port" | awk '{print $1}' | head -n1 || true)"
+    if [ -n "$pid" ]; then
+      echo "$pid"
+      return 0
+    fi
+    pid="$(ps w | grep -F "iperf3" | grep -F -- "-p$port" | awk '{print $1}' | head -n1 || true)"
+    if [ -n "$pid" ]; then
+      echo "$pid"
+      return 0
+    fi
+  fi
+
+  pid="$(ps w | grep -F "iperf3" | grep -v grep | awk '{print $1}' | head -n1 || true)"
+  if [ -n "$pid" ]; then
+    echo "$pid"
+    return 0
+  fi
+
+  return 1
+}
+
+start_server_detached() {
+  args="$*"
+  log "Launching: $IPERF_BIN $args"
+  setsid "$IPERF_BIN" $args >> "$SERVER_LOG" 2>&1 </dev/null &
+  sleep 1
+
+  logfile=""
+  port=""
+
+  for token in $args; do
+    case "$token" in
+      --logfile=*)
+        logfile="$(echo "$token" | sed -e 's/^--logfile=//')"
+        ;;
+      --logfile)
+        ;;
+      -p)
+        ;;
+      -p* )
+        port="$(echo "$token" | sed -e 's/^-p//')"
+        ;;
+    esac
+  done
+
+  if [ -z "$logfile" ]; then
+    logfile="$SERVER_LOG"
+  fi
+
+  tries=0
+  while [ $tries -lt 15 ]; do
+    if pid="$(detect_iperf_pid "$logfile" "$port" 2>/dev/null || true)"; then
+      if kill -0 "$pid" 2>/dev/null; then
+        echo "$pid" > "$PIDFILE"
+        log "Detected iperf3 pid $pid and wrote pidfile $PIDFILE"
+        return 0
+      fi
+    fi
+    tries=$((tries+1))
+    
+  done
+
+  err "Failed to detect running iperf3 process after start"
+  return 2
+}
+
+run_server() {
+  : > "$SERVER_LOG"
+  ensure_iperf
+
+  has_logfile=0
+  for a in "$@"; do
+    case "$a" in --logfile|--logfile=*) has_logfile=1; break ;; esac
+  done
+  if [ "$has_logfile" -eq 0 ]; then
+    set -- "$@" --logfile "$SERVER_LOG" --forceflush
+  fi
+
+  if [ -f "$PIDFILE" ]; then
+    oldpid="$(cat "$PIDFILE" 2>/dev/null || true)"
+    if [ -n "$oldpid" ] && kill -0 "$oldpid" 2>/dev/null; then
+      err "Server already appears to be running (pid $oldpid)"
+      exit 1
+    else
+      rm -f "$PIDFILE"
+    fi
+  fi
+
+  if start_server_detached "$@"; then
+    log "Server start succeeded"
+    exit 0
+  else
+    err "Server start failed"
+    exit 2
+  fi
+}
+
+run_client() {
+  : > "$CLIENT_LOG"
+  ensure_iperf
+
+  has_logfile=0
+  for a in "$@"; do
+    case "$a" in --logfile|--logfile=*) has_logfile=1; break ;; esac
+  done
+  if [ "$has_logfile" -eq 0 ]; then
+    set -- "$@" --logfile "$CLIENT_LOG" --forceflush
+  fi
+
+  log "Starting iperf3 client: $*"
+  "$IPERF_BIN" "$@" >> "$CLIENT_LOG" 2>&1 &
+  pid=$!
+  
+  if kill -0 "$pid" 2>/dev/null; then
+    log "Client started pid $pid"
+    exit 0
+  else
+    err "Client failed to start"
+    exit 2
+  fi
+}
+
+stop_server() {
+  if [ -f "$PIDFILE" ]; then
+    pid="$(cat "$PIDFILE" 2>/dev/null || true)"
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+      log "Stopping iperf3 server pid $pid"
+      kill "$pid" 2>/dev/null || true
+     
+      if kill -0 "$pid" 2>/dev/null; then
+        log "Force kill server pid $pid"
+        kill -9 "$pid" 2>/dev/null || true
+       
+      fi
+      rm -f "$PIDFILE"
+      log "Server stopped"
+      exit 0
+    else
+      p="$(ps w | grep -F iperf3 | grep -v grep | awk '{print $1}' | head -n1 || true)"
+      if [ -n "$p" ]; then
+        log "No pidfile process, but found iperf3 pid $p, killing"
+        kill "$p" 2>/dev/null || true
+        rm -f "$PIDFILE"
+        exit 0
+      fi
+      err "pidfile exists but process not running"
+      rm -f "$PIDFILE"
+      exit 1
+    fi
+  else
+    err "No pidfile; trying to find iperf3 process"
+    p="$(ps w | grep -F iperf3 | grep -v grep | awk '{print $1}' | head -n1 || true)"
+    if [ -n "$p" ]; then
+      log "Found iperf3 pid $p, killing"
+      kill "$p" 2>/dev/null || true
+      exit 0
+    fi
+    err "No iperf3 process found"
+    exit 1
+  fi
+}
+
+clear_client_log() { : > "$CLIENT_LOG"; log "Client log cleared"; exit 0; }
+clear_server_log() { : > "$SERVER_LOG"; log "Server log cleared"; exit 0; }
+
+case "${1:-}" in
+  server) shift || true; run_server "$@" ;;
+  client) shift || true; run_client "$@" ;;
+  stop-server) stop_server ;;
+  clear-client-log) clear_client_log ;;
+  clear-server-log) clear_server_log ;;
+  *) echo "Usage: $0 {server|client|stop-server|clear-client-log|clear-server-log} [iperf3-args]" >&2; exit 3 ;;
+esac

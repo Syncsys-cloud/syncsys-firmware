@@ -1,0 +1,18 @@
+{
+	"luci-app-ats": {
+		"description": "Grant UCI access for luci-app-ats",
+		"read": {
+			"ubus": {
+				"luci": [ "getInitList", "getLEDs", "getTimezones", "getUSBDevices" ],
+				"system": [ "info" ]
+			},
+			"uci": [ "luci", "system","ats"  ]
+		},
+		"write": {
+			"ubus": {
+				"luci": [ "setInitAction", "setLocaltime", "setPassword" ]
+			},
+			"uci": [ "luci", "system", "ats" ]
+		}
+	}
+}

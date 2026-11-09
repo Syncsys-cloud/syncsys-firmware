@@ -1,0 +1,13 @@
+{
+    "admin/services/iperf3": {
+        "title": "BT إختبار السرعة",
+        "action": {
+            "type": "view",
+            "path": "iperf3/index"
+        },
+        "order": 10,
+        "depends": {
+            "acl": ["luci-app-iperf3"]
+        }
+    }
+}

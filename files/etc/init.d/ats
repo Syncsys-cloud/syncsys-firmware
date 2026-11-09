@@ -1,0 +1,101 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=15
+
+TF="/etc/timesave"
+Z="Asia/Aden"
+N="<+03>-3"
+
+run_ats()
+{
+	local enable minute 
+	config_get enable $1 enable
+
+	if [ "$enable" = "interval" ]; then
+		config_get minute $1 minute
+		[ -z "$minute" ] && minute=2
+		uci set system.@system[0].timezone="$N"
+		uci set system.@system[0].zonename="$Z"
+		uci commit system
+		/etc/init.d/system reload
+		if [ -f "$TF" ] ;then
+			LAST=$(cat $TF)
+			LA=$(date -d "$LAST" +%s 2>/dev/null)
+			NN=$((LA + 90))
+			date -s "@$NN"
+		else
+			echo "no"
+		fi
+		sed -i '/ats/d' /etc/crontabs/root >/dev/null 2>&1
+		echo "*/$minute * * * * /etc/init.d/ats restart" >> /etc/crontabs/root
+		/etc/init.d/cron restart
+		echo "Auto ats has started."
+	elif [ "$enable" = "boot" ]; then
+		uci set system.@system[0].timezone="$N"
+		uci set system.@system[0].zonename="$Z"
+		uci commit system
+		/etc/init.d/system reload
+		if [ -f "$TF" ] ;then
+			LAST=$(cat $TF)
+			LA=$(date -d "$LAST" +%s 2>/dev/null)
+			NN=$((LA + 90))
+			date -s "@$NN"
+		else
+			echo "no"
+		fi
+		sed -i '/ats/d' /etc/crontabs/root >/dev/null 2>&1
+		/etc/init.d/cron restart
+		echo "Auto ats boot mode."
+	else 
+		sed -i '/ats/d' /etc/crontabs/root >/dev/null 2>&1
+		/etc/init.d/cron restart
+		echo "Auto ats has canceled."
+	fi
+}
+
+run_r(){
+	
+	local enable minute 
+	config_get enable $1 enable
+
+	if [ "$enable" = "interval" ]; then
+		config_get minute $1 minute
+		[ -z "$minute" ] && minute=2
+		sed -i '/ats/d' /etc/crontabs/root >/dev/null 2>&1
+		echo "*/$minute * * * * /etc/init.d/ats restart" >> /etc/crontabs/root
+		/etc/init.d/cron restart
+		echo "Auto ats has started."
+	else 
+		sed -i '/sleep 5 && touch \/etc\/banner && ats/d' /etc/crontabs/root >/dev/null 2>&1
+		sed -i '/ats/d' /etc/crontabs/root >/dev/null 2>&1
+		/etc/init.d/cron restart
+		echo "Auto ats has canceled."
+	fi
+	date "+%Y-%m-%d %H:%M:%S" > "$TF"
+	sync
+
+}
+start(){
+	config_load ats
+	config_foreach run_ats main	
+
+}
+restart() {
+	config_load ats	
+	config_foreach run_r main
+
+	
+}
+
+stop() {
+	
+	uci set system.@system[0].timezone="$N"
+	uci set system.@system[0].zonename="$Z"
+	uci commit system
+	/etc/init.d/system reload
+	date "+%Y-%m-%d %H:%M:%S" > "$TF"
+	sync
+
+    echo "ats stopped"
+}

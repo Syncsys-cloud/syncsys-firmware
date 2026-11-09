@@ -1,0 +1,11 @@
+{
+  "admin/almalaki-app/systemupdate": {
+    "title": "MKSUP [تحديث النظام]",
+    "order": 90,
+    "action": {
+      "type": "form",
+      "path": "systemupdate"
+    },
+    "depends": { "acl": [ "luci-app-systemupdate" ] }
+  }
+}

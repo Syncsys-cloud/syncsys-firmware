@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="cb-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16234f"/><stop offset="55%" stop-color="#0f1a3d"/><stop offset="100%" stop-color="#080f28"/></linearGradient>
+    <radialGradient id="cb-cpu" cx="0.5" cy="0.4" r="0.7"><stop offset="0" stop-color="#3a54c9"/><stop offset="100%" stop-color="#1a2657"/></radialGradient>
+    <radialGradient id="cb-halo" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#e7c667" stop-opacity=".28"/><stop offset="100%" stop-color="#e7c667" stop-opacity="0"/></radialGradient>
+    <filter id="cb-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <style>
+      .cb-t{fill:none;stroke:#3f57ad;stroke-width:2;opacity:.55}
+      .cb-pad{fill:#2a3d82;stroke:#5f76d6;stroke-width:1}
+      @keyframes cbPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+      .cb-cpu-g{transform-origin:720px 450px;animation:cbPulse 3.4s ease-in-out infinite}
+      @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="url(#cb-bg)"/>
+  <circle cx="720" cy="450" r="360" fill="url(#cb-halo)"/>
+
+  <!-- المسارات -->
+  <g>
+    <path id="cbP1" class="cb-t" d="M180 200 H520 V360 H600"/>
+    <path id="cbP2" class="cb-t" d="M1260 220 H900 V360 H840"/>
+    <path id="cbP3" class="cb-t" d="M160 700 H520 V560 H600"/>
+    <path id="cbP4" class="cb-t" d="M1280 700 H920 V560 H840"/>
+    <path id="cbP5" class="cb-t" d="M720 140 V320"/>
+    <path id="cbP6" class="cb-t" d="M720 760 V580"/>
+    <rect class="cb-pad" x="170" y="192" width="16" height="16" rx="3"/>
+    <rect class="cb-pad" x="1252" y="212" width="16" height="16" rx="3"/>
+    <rect class="cb-pad" x="152" y="692" width="16" height="16" rx="3"/>
+    <rect class="cb-pad" x="1272" y="692" width="16" height="16" rx="3"/>
+  </g>
+
+  <!-- نبضات بيانات تسري على المسارات -->
+  <g fill="#e7c667" filter="url(#cb-glow)">
+    <circle r="4"><animateMotion dur="2.6s" repeatCount="indefinite" rotate="auto"><mpath href="#cbP1"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="3s" repeatCount="indefinite" begin="0.5s"><mpath href="#cbP2"/></animateMotion></circle>
+    <circle r="4" fill="#8fa2f7"><animateMotion dur="2.8s" repeatCount="indefinite" begin="1s"><mpath href="#cbP3"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.4s"><mpath href="#cbP4"/></animateMotion></circle>
+    <circle r="4" fill="#8fa2f7"><animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#cbP5"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.8s"><mpath href="#cbP6"/></animateMotion></circle>
+  </g>
+
+  <!-- المعالج المركزي -->
+  <g class="cb-cpu-g" filter="url(#cb-glow)">
+    <g stroke="#e7c667" stroke-width="2">
+      <line x1="640" y1="410" x2="620" y2="410"/><line x1="640" y1="440" x2="620" y2="440"/><line x1="640" y1="470" x2="620" y2="470"/>
+      <line x1="800" y1="410" x2="820" y2="410"/><line x1="800" y1="440" x2="820" y2="440"/><line x1="800" y1="470" x2="820" y2="470"/>
+      <line x1="690" y1="360" x2="690" y2="340"/><line x1="720" y1="360" x2="720" y2="340"/><line x1="750" y1="360" x2="750" y2="340"/>
+      <line x1="690" y1="540" x2="690" y2="560"/><line x1="720" y1="540" x2="720" y2="560"/><line x1="750" y1="540" x2="750" y2="560"/>
+    </g>
+    <rect x="640" y="370" width="160" height="160" rx="16" fill="url(#cb-cpu)" stroke="#e7c667" stroke-width="2"/>
+    <rect x="668" y="398" width="104" height="104" rx="8" fill="none" stroke="#8fa2f7" stroke-width="1.4" opacity=".7"/>
+    <text x="720" y="462" fill="#e7c667" font-size="30" font-family="monospace" font-weight="bold" text-anchor="middle">MK</text>
+  </g>
+</svg>

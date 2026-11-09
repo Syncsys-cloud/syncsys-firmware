@@ -1,0 +1,26 @@
+config local
+	option enable '1'
+	option interface 'lan'
+	option port '7547'
+	option ubus_socket '/var/run/ubus.sock'
+	option date_format '%FT%T%z'
+	option username 'easycwmp'
+	option password 'easycwmp'
+	option authentication 'Digest'
+	option logging_level '3'
+
+config acs
+	option url 'http://192.168.1.6:7501/openacs/acs'
+	option username 'easycwmp'
+	option password 'easycwmp'
+	option periodic_enable '1'
+	option periodic_interval '60'
+	option periodic_time '0001-01-01T00:00:00Z'
+
+config device
+	option manufacturer 'Qihoo'
+	option oui 'FFFFFF'
+	option product_class '360T6GS'
+	option serial_number '360T6GS123456'
+	option hardware_version '360T6GS'
+	option software_version 'AL-MALAKI v3.3 LTS'

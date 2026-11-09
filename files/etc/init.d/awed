@@ -1,0 +1,219 @@
+#!/bin/sh /etc/rc.common
+# Awed730_Auto_Change_Wifi_2G+5G_Channel_Every_Boot
+# This Script was made by: AwadhWedaan
+
+START=99
+STOP=15
+
+get_best_channel() {
+    local iface="$1"
+    shift
+    local channels="$@"
+    
+    # Initialize counters
+    for ch in $channels; do
+        eval "count_$ch=0"
+    done
+    
+    # Scan networks
+    tmpfile=$(mktemp)
+    iwinfo "$iface" scan > "$tmpfile" 2>/dev/null
+    
+    # Parse results
+    while IFS= read -r line; do
+        case "$line" in
+            *Channel:*)
+                ch=$(echo "$line" | awk -F ':' '{print $2}' | awk '{print $1}')
+                for c in $channels; do
+                    if [ "$ch" = "$c" ]; then
+                        eval "count_$c=\$((count_$c + 1))"
+                        break
+                    fi
+                done
+                ;;
+        esac
+    done < "$tmpfile"
+    rm -f "$tmpfile"
+    
+    # Find best channel
+    local best_ch=""
+    local min_usage=9999
+    
+    for ch in $channels; do
+        local current_usage=$(eval "echo \$count_$ch")
+        [ -z "$current_usage" ] && current_usage=0
+        
+        if [ $current_usage -lt $min_usage ]; then
+            min_usage=$current_usage
+            best_ch="$ch"
+        elif [ $current_usage -eq $min_usage ]; then
+            [ "$ch" -lt "$best_ch" ] && best_ch="$ch"
+        fi
+    done
+    
+    echo "$best_ch"
+}
+
+detect_wifi_interfaces() {
+    # Reset variables
+    WIFI_IFACE2G=""
+    WIFI_IFACE5G=""
+    
+    # Get all radio interfaces
+    radios=$(uci show wireless | grep '=wifi-device' | cut -d'.' -f2 | cut -d'=' -f1)
+    
+    for radio in $radios; do
+        band=$(uci -q get wireless.$radio.band)
+        hwmode=$(uci -q get wireless.$radio.hwmode)
+        
+        # Detect by band setting
+        if [ "$band" = "2g" ] || [ "$band" = "5g" ]; then
+            [ "$band" = "2g" ] && WIFI_IFACE2G="$radio"
+            [ "$band" = "5g" ] && WIFI_IFACE5G="$radio"
+        # Detect by hwmode
+        elif echo "$hwmode" | grep -q "11g"; then
+            WIFI_IFACE2G="$radio"
+        elif echo "$hwmode" | grep -q "11a"; then
+            WIFI_IFACE5G="$radio"
+        # Detect by supported channels
+        else
+            chans=$(iwinfo $radio freqlist | awk '/Channel/ {print $2}')
+            if echo "$chans" | grep -q '^[1-9]$'; then
+                WIFI_IFACE2G="$radio"
+            elif echo "$chans" | grep -q '^3[0-9]$'; then
+                WIFI_IFACE5G="$radio"
+            fi
+        fi
+    done
+}
+
+
+stt(){
+	[ "x$XBOOT" = "x1" ] && return 0
+	local cfg="$1"
+	local enabled channels_5g channels_2g houre	=
+	config_get channels_5g "$cfg" channels_5g
+	config_get channels_2g "$cfg" channels_2g
+	config_get houre "$cfg" houre
+	config_get enabled  "$cfg" enabled 
+config_get enabled_2g "$cfg" enabled_2g
+config_get enabled_5g "$cfg" enabled_5g
+
+
+	if [ $enabled = 1 ]; then
+		CRON_FILE="/etc/crontabs/root"
+		SCRIPT_CMD="/etc/init.d/awed restart"
+
+		sed -i "\|$SCRIPT_CMD|d" "$CRON_FILE"
+
+		if [ "$houre" -le 23 ]; then
+			#                 24     
+			CRON_JOB="0 */$houre * * * $SCRIPT_CMD"
+		else
+			#                  23     
+			days=$((houre / 24))
+			extra_hours=$((houre % 24))
+			
+			if [ "$extra_hours" -eq 0 ]; then
+				#                                         
+				CRON_JOB="0 0 */$days * * $SCRIPT_CMD"
+			else
+				#     50      =       +       
+				CRON_JOB="0 $extra_hours */$days * * $SCRIPT_CMD"
+			fi
+		fi
+
+	#                      
+		echo "$CRON_JOB" >> "$CRON_FILE"
+
+              
+		/etc/init.d/cron restart       
+			# Auto-detect interfaces
+		detect_wifi_interfaces
+			
+			# Set country code for all detected interfaces
+		[ -n "$WIFI_IFACE2G" ] && uci -q set wireless.$WIFI_IFACE2G.country="US"
+		[ -n "$WIFI_IFACE5G" ] && uci -q set wireless.$WIFI_IFACE5G.country="US"
+		
+		# Process 2G interface
+		if [ "$enabled_2g" = "1" ] && [ -n "$WIFI_IFACE2G" ]; then
+			echo "Awed730_Channel_Changer: Detected 2G: $WIFI_IFACE2G"
+			
+			if [ -n "$(iwinfo $WIFI_IFACE2G info | grep '2.. MHz')" ]; then
+				NEW_CHANNEL2G=$(get_best_channel "$WIFI_IFACE2G" $channels_2g)
+			else
+				NEW_CHANNEL2G=$(get_best_channel "$WIFI_IFACE2G" $channels_2g)
+			fi
+			echo $NEW_CHANNEL2G
+				
+			CURRENT_CHANNEL2G=$(uci -q get wireless.$WIFI_IFACE2G.channel || echo "1")
+			[ -z "$NEW_CHANNEL2G" ] && NEW_CHANNEL2G=1
+			
+			if [ "$CURRENT_CHANNEL2G" != "$NEW_CHANNEL2G" ]; then
+				uci set wireless.$WIFI_IFACE2G.channel="$NEW_CHANNEL2G"
+				CHANGE_NEEDED=1
+				echo "Awed730_Channel_Changer: Changed 2G: from ${CURRENT_CHANNEL2G} to ${NEW_CHANNEL2G}"
+			else
+				echo "Awed730_Channel_Changer: No 2G channel change needed"
+			fi
+		fi
+			
+			# Process 5G interface only if exists
+	if [ "$enabled_5g" = "1" ] && [ -n "$WIFI_IFACE5G" ]; then
+			echo "Awed730_Channel_Changer: Detected 5G: $WIFI_IFACE5G"
+			
+            if [ -n "$(iwinfo $WIFI_IFACE5G info | grep '5... MHz')" ]; then
+                NEW_CHANNEL5G=$(get_best_channel "$WIFI_IFACE5G" $channels_5g)
+            else
+                NEW_CHANNEL5G=$(get_best_channel "$WIFI_IFACE5G" $channels_5g)
+            fi
+            echo $NEW_CHANNEL5G
+                    
+            CURRENT_CHANNEL5G=$(uci -q get wireless.$WIFI_IFACE5G.channel || echo "36")
+            [ -z "$NEW_CHANNEL5G" ] && NEW_CHANNEL5G=36
+            
+            if [ "$CURRENT_CHANNEL5G" != "$NEW_CHANNEL5G" ]; then
+                uci set wireless.$WIFI_IFACE5G.channel="$NEW_CHANNEL5G"
+                CHANGE_NEEDED=1
+                echo "Awed730_Channel_Changer: Changed 5G: from ${CURRENT_CHANNEL5G} to ${NEW_CHANNEL5G}"
+            else
+                echo "Awed730_Channel_Changer: No 5G channel change needed"
+            fi
+		else
+			echo "Awed730_Channel_Changer: No 5G interface detected"
+		fi
+
+		# Apply changes if needed
+		if [ -n "$CHANGE_NEEDED" ]; then
+			uci commit wireless
+			wifi reload >/dev/null 2>&1
+			echo "Awed730_Channel_Changer: Applied channel changes"
+		else
+			echo "Awed730_Channel_Changer: No channel changes needed"
+		fi
+
+	else 
+		CRON_FI="/etc/crontabs/root"
+		SCRIPT_C="/etc/init.d/awed restart"
+		sed -i "\|$SCRIPT_C|d" "$CRON_FI"
+
+
+	fi
+
+
+
+
+}
+
+start() {
+config_load awed
+config_foreach stt awed
+}
+
+restart() {
+	XRELOAD=1 start
+}
+
+stop() {
+    echo "Channel Changer stopped"
+}

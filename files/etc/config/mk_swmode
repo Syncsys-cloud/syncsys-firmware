@@ -1,0 +1,7 @@
+config global 'settings'
+	option enabled '1'
+	option mode 'switch-port'
+	option bridge 'br-lan'
+	option macvlan_prefix 'mv-'
+	option macvlan_mode 'passthru'
+	option backup_file '/etc/config/network.mk-swmode.bak'

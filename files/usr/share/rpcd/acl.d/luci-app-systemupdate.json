@@ -1,0 +1,19 @@
+{
+  "luci-app-systemupdate": {
+    "description": "AL-MALAKI system update interface",
+    "read": {
+      "ubus": {
+        "session": [
+          "access"
+        ]
+      }
+    },
+    "write": {
+      "ubus": {
+        "session": [
+          "access"
+        ]
+      }
+    }
+  }
+}

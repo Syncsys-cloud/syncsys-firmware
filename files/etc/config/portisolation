@@ -1,0 +1,68 @@
+config core 'main'
+	option enabled '0'
+	option mode 'ap_simple'
+	option bridge 'br-lan'
+	option bridge_section 'lan'
+	list uplink_ports
+	list uplink_patterns
+	list downlink_ports
+	list downlink_patterns
+	list backhaul_ports
+	list backhaul_patterns
+	list trusted_ports
+	list trusted_patterns
+	list access_ports
+	list access_patterns
+	option enforce_port_isolation '1'
+	option wireless_client_isolation '1'
+	option wifi_auto_detect '1'
+	list wifi_client_networks
+	list wifi_ap_sections
+	option wifi_backhaul_auto_detect '1'
+	list wifi_backhaul_sections
+	option manage_tc '0'
+	option tc_broadcast_rate '100'
+	option tc_broadcast_ceil '200'
+	option loop_guard_enabled '1'
+	option loop_guard_mode 'stp_bpdu_guard'
+	option loopd_enabled '1'
+	option probe_interval_ms '300'
+	option probe_uplink '0'
+	option punish_cooldown '60'
+	option punish_cooldown_max '900'
+	option probation_hold '30'
+	option stable_reset '300'
+	option fdb_flap_threshold '0'
+	option tx_jam_limit '8'
+	option gate_enabled '1'
+	option gate_open_hold '5'
+	option gate_rx_pps_max '2000'
+	option sticky_after '0'
+	option release_stagger '3'
+	option suspect_hold '25'
+	option recovery_skew '45'
+	option shield_enabled '1'
+	option shield_bcast_pps '300'
+	option pause_guard '1'
+	option pause_pps_max '100'
+	option pause_guard_uplink '1'
+	option manage_multicast_snooping '1'
+	option multicast_snooping_value '1'
+	option manage_ageing '1'
+	option ageing_value '300'
+	option monitor_enabled '1'
+	option monitor_interval '20'
+	option safe_apply_timeout '90'
+	option auto_reapply '1'
+	option topology_watch '1'
+	option drift_watch '1'
+	option stp_event_watch '1'
+	option status_file '/tmp/portisolation.status'
+	option state_file '/tmp/portisolation.state'
+	option safe_pending_file '/etc/portisolation/safe_pending'
+	option config_backup_dir '/etc/portisolation/backups'
+	option log_enabled '1'
+	option log_file '/tmp/portisolation.log'
+	option log_max_kb '256'
+	option log_keep_rotations '1'
+	option debug_enabled '0'

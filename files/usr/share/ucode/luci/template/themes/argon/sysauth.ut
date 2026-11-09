@@ -1,0 +1,233 @@
+{#
+	luci-theme-argon — صفحة تسجيل الدخول (تصميم SyncSys، مكتفية ذاتيًا).
+	هذا الملف وحده هو المُعدَّل؛ لا يمسّ أي ملف argon آخر. كل التنسيق والرسوم مضمّنة هنا.
+
+	Based on luci-theme-argon (Copyright 2020 Jerrykuku, Apache-2.0).
+-#}
+
+{% include("themes/" + theme + "/out_header_login") %}
+{%
+	import * as fs from 'fs';
+	import { cursor } from 'uci';
+	import { rand } from 'math';
+
+	let cfg = cursor();
+
+	const imageTypes = " jpg jpeg png gif webp svg ";
+	const videoTypes = " mp4 webm ";
+	const allTypes = imageTypes + videoTypes;
+
+	function fetchMedia(path, themeDir) {
+		let t = [];
+		for (f in (fs.lsdir(path))) {
+			let ext = lc(split(f, '.')?.[1]);
+			if (ext && index(allTypes, " " + ext + " ") != -1)
+				push(t, { type: ext, url: themeDir + f });
+		}
+		return t;
+	}
+
+	function selectBackground(themeDir) {
+		let bgUrl = "", backgroundType = "Image", mimeType = "", isCustom = false;
+		if (fs.access("/etc/config/argon")) {
+			let ow = cfg.get_first('argon', 'global', 'online_wallpaper') ?? (cfg.get_first('argon', 'global', 'bing_background') == '1' ? 'bing' : null);
+			if (ow && ow != "none") {
+				const pic = ubus.call("luci.argon_wallpaper", "get_url") ?? {};
+				if (pic?.url) { bgUrl = pic.url; isCustom = true; return {bgUrl, backgroundType, mimeType, isCustom}; }
+			}
+		}
+		let bg = fetchMedia("/www" + themeDir, themeDir);
+		if (length(bg) > 0) {
+			let c = bg[(rand() % length(bg))];
+			bgUrl = c.url; isCustom = true;
+			if (index(videoTypes, " " + c.type + " ") != -1) { backgroundType = "Video"; mimeType = "video/" + c.type; }
+		}
+		return {bgUrl, backgroundType, mimeType, isCustom};
+	}
+
+	const boardinfo = ubus.call("system", "board");
+	const hostname = striptags(boardinfo?.hostname ?? '?');
+	const bgArry = selectBackground(media + "/background/");
+
+	// نموذج خلفية الدخول المتحركة: uci set argon.@global[0].login_bg='<name>'
+	// النماذج: net-dots, circuit-lite, waves-net, circuit-board, network-graph, cpu-matrix
+	let model_svg = '';
+	if (fs.access("/etc/config/argon")) {
+		let lb = cfg.get_first('argon', 'global', 'login_bg') ?? '';
+		if (lb != '' && lb != 'default' && match(lb, /^[a-z0-9-]+$/)) {
+			let f = "/www" + media + "/login-bg/" + lb + ".svg";
+			if (fs.access(f)) model_svg = fs.readfile(f) ?? '';
+		}
+	}
+%}
+<style>
+.alm-login{position:fixed;inset:0;overflow:hidden;font-family:"Cairo","Segoe UI","Tahoma","Helvetica Neue",sans-serif;
+	--r:#0ea5e9;--r2:#38bdf8;--g:#f0f9ff;--g2:#e0f2fe;--rrgb:14,165,233}
+.alm-login *{box-sizing:border-box}
+.alm-login-bg{position:fixed;inset:0;z-index:0}
+.alm-login-bg-svg svg,.alm-login-video video{width:100%;height:100%;object-fit:cover;display:block}
+.alm-login-bg-img{background-size:cover;background-position:center;background-repeat:no-repeat}
+.alm-login-scrim{position:fixed;inset:0;z-index:1;pointer-events:none;
+	background:linear-gradient(90deg,rgba(2,8,23,.55),rgba(2,8,23,.28) 34%,rgba(2,8,23,0) 62%)}
+.alm-login-wrap{position:fixed;inset:0;z-index:2;display:flex;align-items:center}
+.alm-login-card{width:380px;max-width:calc(100vw - 40px);margin-left:7vw;margin-right:auto;padding:30px 28px 24px;
+	border-radius:22px;background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(18px) saturate(1.2);
+	backdrop-filter:blur(18px) saturate(1.2);border:1px solid rgba(255,255,255,.55);
+	box-shadow:0 24px 70px rgba(2,8,23,.45),inset 0 1px 0 rgba(255,255,255,.6);
+	animation:almLoginIn .6s cubic-bezier(.2,.8,.2,1) both}
+@keyframes almLoginIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+.alm-login-brand{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.alm-login-logo{width:62px;height:62px;flex:0 0 auto;display:block;filter:drop-shadow(0 6px 14px rgba(var(--rrgb),.35))}
+.alm-login-logo svg{width:100%;height:100%;display:block}
+.alm-login-name{font-size:1.35rem;font-weight:700;color:#0c4a6e;line-height:1.2}
+.alm-login-sub{font-size:.82rem;color:#64748b;margin-top:3px}
+.alm-login-form{display:flex;flex-direction:column;gap:14px}
+.alm-login-field{position:relative;display:flex;align-items:center}
+.alm-login-field .alm-fic{position:absolute;inset-inline-start:14px;width:20px;height:20px;color:var(--r);opacity:.7;pointer-events:none}
+.alm-login-field input{width:100%;height:50px;padding-inline-start:44px;padding-inline-end:14px;border-radius:13px;
+	border:1.5px solid rgba(var(--rrgb),.18);background:rgba(255,255,255,.75);color:#0c4a6e;font-size:1rem;
+	transition:border-color .18s,box-shadow .18s,background .18s}
+.alm-login-field input::placeholder{color:#8a93ad}
+.alm-login-field input:focus{outline:none;border-color:var(--r);background:#fff;box-shadow:0 0 0 4px rgba(var(--rrgb),.16)}
+.alm-login-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:50px;margin-top:4px;border:0;
+	border-radius:13px;cursor:pointer;color:#fff;font-size:1.02rem;font-weight:700;font-family:inherit;
+	background:linear-gradient(120deg,var(--r2),var(--r));box-shadow:0 10px 24px rgba(var(--rrgb),.38);
+	transition:transform .12s,box-shadow .2s,filter .2s}
+.alm-login-btn svg{width:20px;height:20px;fill:currentColor}
+.alm-login-btn:hover{transform:translateY(-1px);filter:brightness(1.05);box-shadow:0 14px 30px rgba(var(--rrgb),.46),0 0 0 2px rgba(202,161,46,.5)}
+.alm-login-btn:active{transform:translateY(0)}
+.alm-login-error{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:12px;
+	background:rgba(245,54,92,.12);border:1px solid rgba(245,54,92,.4);color:#c0243f;font-size:.88rem;font-weight:600}
+.alm-login-error svg{width:20px;height:20px;flex:0 0 auto}
+.alm-login-foot{margin-top:18px;text-align:center;font-size:.74rem;color:#7b84a0}
+@media(max-width:640px){.alm-login-card{margin-left:auto;margin-right:auto}.alm-login-scrim{background:rgba(2,8,23,.45)}}
+/* رسوم الخلفية المتحركة (أصناف مموّهة lbg* لئلا تتسرّب لبقية الصفحة) */
+.lbgNode{fill:#8fa2f7}.lbgLink{stroke:#5f76d6;stroke-width:1.1;opacity:.28}
+.lbgWifi{fill:none;stroke:#e7c667;stroke-width:3;stroke-linecap:round;opacity:0}.lbgSpark{fill:#f4d982}
+@keyframes lbgF1{0%,100%{transform:translateY(0)}50%{transform:translateY(-26px)}}
+@keyframes lbgF2{0%,100%{transform:translateY(0)}50%{transform:translateY(22px)}}
+@keyframes lbgPulse{0%,100%{r:4;opacity:.9}50%{r:7;opacity:1}}
+@keyframes lbgDrift{0%{transform:translate(0,0);opacity:0}10%{opacity:.9}90%{opacity:.9}100%{transform:translate(60px,-120px);opacity:0}}
+@keyframes lbgWifiP{0%{opacity:0;transform:scale(.6)}30%{opacity:.9}100%{opacity:0;transform:scale(1.35)}}
+@keyframes lbgGlowM{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+.lbgG1{animation:lbgF1 9s ease-in-out infinite}.lbgG2{animation:lbgF2 11s ease-in-out infinite}
+.lbgGlowa{animation:lbgGlowM 14s ease-in-out infinite}.lbgP{animation:lbgPulse 3.5s ease-in-out infinite}
+.lbgSp{animation:lbgDrift 7s linear infinite}
+.lbgWifi.lbgW1{animation:lbgWifiP 3.2s ease-out infinite}
+.lbgWifi.lbgW2{animation:lbgWifiP 3.2s ease-out infinite .5s}
+.lbgWifi.lbgW3{animation:lbgWifiP 3.2s ease-out infinite 1s}
+@media (prefers-reduced-motion:reduce){.alm-login-bg-svg *{animation:none!important}.lbgWifi{opacity:.5}}
+</style>
+
+<!-- صفحة الدخول — تصميم SyncSys -->
+<div class="login-page alm-login" dir="rtl">
+	{% if ( bgArry.isCustom && bgArry.backgroundType == "Video" ): %}
+	<div class="alm-login-bg alm-login-video"><video autoplay loop muted><source src="{{ bgArry.bgUrl }}" type="{{ bgArry.mimeType }}"></video></div>
+	{% elif ( bgArry.isCustom ): %}
+	<div class="alm-login-bg alm-login-bg-img" style="background-image:url('{{ bgArry.bgUrl }}')"></div>
+	{% else %}
+	<div class="alm-login-bg alm-login-bg-svg">{% if (model_svg): %}{{ model_svg }}{% else %}
+		<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+			<defs>
+				<linearGradient id="lbgRoyal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22326f"/><stop offset="45%" stop-color="#1b2757"/><stop offset="100%" stop-color="#0f1738"/></linearGradient>
+				<radialGradient id="lbgGA" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#38bdf8" stop-opacity="0.55"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></radialGradient>
+				<radialGradient id="lbgGG" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#bae6fd" stop-opacity="0.40"/><stop offset="100%" stop-color="#bae6fd" stop-opacity="0"/></radialGradient>
+			</defs>
+			<rect width="1440" height="900" fill="url(#lbgRoyal)"/>
+			<g class="lbgGlowa"><circle cx="1080" cy="300" r="360" fill="url(#lbgGA)"/></g>
+			<circle cx="380" cy="720" r="300" fill="url(#lbgGG)" opacity="0.5"/>
+			<g class="lbgG1">
+				<line class="lbgLink" x1="1040" y1="250" x2="1200" y2="360"/>
+				<line class="lbgLink" x1="1200" y1="360" x2="1120" y2="540"/>
+				<line class="lbgLink" x1="1120" y1="540" x2="960" y2="470"/>
+				<line class="lbgLink" x1="960" y1="470" x2="1040" y2="250"/>
+				<circle class="lbgNode lbgP" cx="1040" cy="250" r="5"/>
+				<circle class="lbgNode lbgP" cx="1200" cy="360" r="5" style="animation-delay:.6s"/>
+				<circle class="lbgNode lbgP" cx="1120" cy="540" r="5" style="animation-delay:1.2s"/>
+				<circle class="lbgNode lbgP" cx="960" cy="470" r="5" style="animation-delay:1.8s"/>
+			</g>
+			<g class="lbgG2" transform="translate(1080,640)">
+				<rect x="-46" y="-16" width="92" height="34" rx="9" fill="#2b3f8f" stroke="#e7c667" stroke-width="1.5"/>
+				<circle cx="-28" cy="1" r="3" class="lbgNode"/>
+				<circle cx="-12" cy="1" r="3" fill="#2dce89"/>
+				<line x1="26" y1="-16" x2="26" y2="-40" stroke="#e7c667" stroke-width="2"/>
+				<g transform="translate(26,-44)">
+					<path class="lbgWifi lbgW1" d="M-16 0 A16 16 0 0 1 16 0"/>
+					<path class="lbgWifi lbgW2" d="M-26 -6 A26 26 0 0 1 26 -6"/>
+					<path class="lbgWifi lbgW3" d="M-36 -12 A36 36 0 0 1 36 -12"/>
+				</g>
+			</g>
+			<g>
+				<circle class="lbgSpark lbgSp" cx="700" cy="800" r="2.6"/>
+				<circle class="lbgSpark lbgSp" cx="850" cy="850" r="2" style="animation-delay:2s"/>
+				<circle class="lbgSpark lbgSp" cx="980" cy="820" r="3" style="animation-delay:3.5s"/>
+				<circle class="lbgSpark lbgSp" cx="620" cy="780" r="2.2" style="animation-delay:5s"/>
+				<circle class="lbgSpark lbgSp" cx="1180" cy="800" r="2.4" style="animation-delay:1s"/>
+			</g>
+		</svg>{% endif %}
+	</div>
+	{% endif %}
+	<div class="alm-login-scrim"></div>
+
+	<div class="alm-login-wrap">
+		<div class="alm-login-card">
+			<div class="alm-login-brand">
+				<span class="alm-login-logo">
+					<svg viewBox="0 0 120 120" role="img" aria-label="SyncSys.cloud" xmlns="http://www.w3.org/2000/svg">
+						<defs>
+							<linearGradient id="mkRoyal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="55%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#0369a1"/></linearGradient>
+							<linearGradient id="mkGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0f2fe"/><stop offset="45%" stop-color="#bae6fd"/><stop offset="100%" stop-color="#0284c7"/></linearGradient>
+							<radialGradient id="mkShine" cx="0.35" cy="0.28" r="0.8"><stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/><stop offset="60%" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+						</defs>
+						<rect x="10" y="10" width="100" height="100" rx="28" fill="url(#mkRoyal)"/>
+						<rect x="10" y="10" width="100" height="100" rx="28" fill="url(#mkShine)"/>
+						<rect x="13.5" y="13.5" width="93" height="93" rx="24.5" fill="none" stroke="url(#mkGold)" stroke-width="2.2" opacity="0.9"/>
+						<path d="M32 74 L30 44 L45 57 L60 38 L75 57 L90 44 L88 74 Z" fill="url(#mkGold)" stroke="#8f6c17" stroke-width="1.2" stroke-linejoin="round"/>
+						<rect x="32" y="74" width="56" height="9" rx="3" fill="url(#mkGold)" stroke="#8f6c17" stroke-width="1.2"/>
+						<circle cx="60" cy="34" r="4.4" fill="#e7c667" stroke="#8f6c17" stroke-width="1"/>
+						<circle cx="30" cy="42" r="3.2" fill="#f4d982" stroke="#8f6c17" stroke-width="0.9"/>
+						<circle cx="90" cy="42" r="3.2" fill="#f4d982" stroke="#8f6c17" stroke-width="0.9"/>
+						<circle cx="45" cy="70" r="2.6" fill="#3a54c9"/>
+						<circle cx="60" cy="70" r="2.6" fill="#c0392b"/>
+						<circle cx="75" cy="70" r="2.6" fill="#3a54c9"/>
+					</svg>
+				</span>
+				<div class="alm-login-titles">
+					<div class="alm-login-name">{{ hostname }}</div>
+					<div class="alm-login-sub">{{ _('SyncSys.cloud — Smart Network OS v1.0') }}</div>
+				</div>
+			</div>
+
+			<form class="form-login alm-login-form" method="post" action="{{ http.getenv("REQUEST_URI") }}">
+				{%- if (fuser): %}
+				<div class="alm-login-error" role="alert">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2 1 21h22L12 2Zm0 6a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1Zm0 9.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z"/></svg>
+					<span>{{ _('اسم المستخدم أو كلمة المرور غير صحيحة. حاول مرة أخرى.') }}</span>
+				</div>
+				{% endif -%}
+
+				<label class="alm-login-field">
+					<svg class="alm-fic" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
+					<input class="cbi-input-user" id="cbi-input-user" type="text" name="luci_username" value="{{ entityencode(duser, true) }}" placeholder="{{ _('اسم المستخدم') }}" autocomplete="username" autocapitalize="none" spellcheck="false" />
+				</label>
+
+				<label class="alm-login-field">
+					<svg class="alm-fic" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17 9V7a5 5 0 0 0-10 0v2a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-7a3 3 0 0 0-3-3ZM9 7a3 3 0 0 1 6 0v2H9V7Zm4 9.7V18a1 1 0 1 1-2 0v-1.3a2 2 0 1 1 2 0Z"/></svg>
+					<input class="cbi-input-password" id="cbi-input-password" type="password" name="luci_password" placeholder="{{ _('كلمة المرور') }}" autocomplete="current-password" />
+				</label>
+
+				<button type="submit" class="alm-login-btn">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5a1 1 0 1 0 0-2H5V5h5a1 1 0 1 0 0-2Zm7.3 5.3 2.99 2.99a1 1 0 0 1 0 1.42L17.3 15.7a1 1 0 0 1-1.4-1.42L17.17 13H10a1 1 0 1 1 0-2h7.17l-1.28-1.29a1 1 0 0 1 1.41-1.41Z"/></svg>
+					<span>{{ _('تسجيل الدخول') }}</span>
+				</button>
+			</form>
+
+			<div class="alm-login-foot">{{ _('محمي — الرجاء إدخال بيانات الدخول') }}</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">//<![CDATA[
+		var u = document.getElementsByName('luci_username')[0];
+		if (u && !u.value) u.focus(); else { var p = document.getElementsByName('luci_password')[0]; if (p) p.focus(); }
+	//]]></script>
+{% include("themes/" + theme + "/footer_login") %}

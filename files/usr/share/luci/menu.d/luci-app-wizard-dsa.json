@@ -1,0 +1,14 @@
+{
+	"admin/ehmed": {
+		"title": "الإعدادات السريعة",
+		"order": 2,
+		"action": {
+			"type": "view",
+			"path": "wizard/wizard"
+		},
+		"depends": {
+			"acl": [ "luci-app-wizard" ],
+			"uci": { "wizard": true }
+		}
+	}
+}

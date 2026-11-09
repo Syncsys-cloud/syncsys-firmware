@@ -1,0 +1,14 @@
+{
+	"admin/speedahmed": {
+		"title": "اختبار السرعة في الشبكة",
+		"order": 2,
+		"action": {
+			"type": "view",
+			"path": "speedahmed/speedahmed"
+		},
+		"depends": {
+			"acl": [ "luci-app-speedahmed" ],
+			"uci": { "speedahmed": true }
+		}
+	}
+}

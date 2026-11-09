@@ -1,0 +1,128 @@
+{
+  "version": 2,
+  "l2_order": [
+    "resources",
+    "network",
+    "system"
+  ],
+  "l2": {
+    "resources": {
+      "collapsed": false,
+      "max": false
+    },
+    "network": {
+      "collapsed": false,
+      "max": false
+    },
+    "system": {
+      "collapsed": false,
+      "max": false
+    }
+  },
+  "l3_order": {
+    "resources": [
+      "cpu",
+      "ram",
+      "storage"
+    ],
+    "network": [
+      "statistics",
+      "clients",
+      "ports"
+    ],
+    "system": [
+      "systeminfo",
+      "uptime"
+    ]
+  },
+  "l3": {
+    "cpu": {
+      "refresh": "default",
+      "hidden": false,
+      "max": false,
+      "wpct": 32,
+      "minw": 240,
+      "hpx": 183,
+      "w": 1,
+      "h": 1,
+      "wpx": 380
+    },
+    "ram": {
+      "refresh": "default",
+      "hidden": false,
+      "max": false,
+      "wpct": 32,
+      "minw": 240,
+      "hpx": 183,
+      "w": 1,
+      "h": 1,
+      "wpx": 380
+    },
+    "storage": {
+      "refresh": "default",
+      "hidden": false,
+      "max": false,
+      "wpct": 32,
+      "minw": 240,
+      "hpx": 183,
+      "w": 1,
+      "h": 1,
+      "wpx": 380
+    },
+    "statistics": {
+      "refresh": "default",
+      "hidden": false,
+      "max": false,
+      "wpct": 48,
+      "minw": 280,
+      "hpx": 280,
+      "w": 1,
+      "h": 1,
+      "wpx": 380
+    },
+    "clients": {
+      "refresh": "default",
+      "hidden": false,
+      "max": false,
+      "wpct": 48,
+      "minw": 280,
+      "hpx": 280,
+      "w": 1,
+      "h": 1,
+      "wpx": 380
+    },
+    "ports": {
+      "refresh": "default",
+      "hidden": false,
+      "max": false,
+      "wpct": 98,
+      "minw": 320,
+      "hpx": 195,
+      "w": 1,
+      "h": 1,
+      "wpx": 380
+    },
+    "systeminfo": {
+      "refresh": "off",
+      "hidden": false,
+      "max": false,
+      "wpct": 48,
+      "minw": 280,
+      "hpx": 240,
+      "w": 1,
+      "h": 1,
+      "wpx": 380
+    },
+    "uptime": {
+      "refresh": "default",
+      "hidden": false,
+      "max": false,
+      "wpct": 48,
+      "minw": 280,
+      "hpx": 240,
+      "w": 1,
+      "h": 1,
+      "wpx": 380
+    }
+  }
+}

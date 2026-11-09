@@ -11,8 +11,8 @@ sed -i 's/ImmortalWrt/SyncSys-Router/g' package/base-files/files/bin/config_gene
 
 # 2. Apply SyncSys.cloud Brand in /etc/openwrt_release
 sed -i 's/DISTRIB_ID=.*/DISTRIB_ID="SyncSys.cloud"/' package/base-files/files/etc/openwrt_release
-sed -i 's/DISTRIB_RELEASE=.*/DISTRIB_RELEASE="v2.0-LTS"/' package/base-files/files/etc/openwrt_release
-sed -i 's/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION="SyncSys.cloud OS Enterprise Edition v2.0"/' package/base-files/files/etc/openwrt_release
+sed -i 's/DISTRIB_RELEASE=.*/DISTRIB_RELEASE="v3.0-LTS"/' package/base-files/files/etc/openwrt_release
+sed -i 's/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION="SyncSys.cloud OS Enterprise Edition v3.0 (25.12)"/' package/base-files/files/etc/openwrt_release
 
 # 3. Copy Custom Terminal Banner
 if [ -f "$GITHUB_WORKSPACE/files/etc/banner" ]; then

@@ -74,3 +74,4 @@ chmod +x /etc/init.d/mk-swmode 2>/dev/null
 /etc/init.d/syncsys-agent start 2>/dev/null
 
 exit 0
+

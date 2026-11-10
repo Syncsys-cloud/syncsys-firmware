@@ -13,6 +13,7 @@ on:
           - 'xiaomi_miwifi_mini'
           - 'xiaomi_cr6609'
           - 'qihoo_360t6gs'
+          - 'qihoo_360t7'
           - 'all'
       ssh:
         description: 'SSH connection to Actions for debugging (true/false)'
@@ -36,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        device: ${{ github.event.inputs.target_device == 'all' && fromJSON('["xiaomi_miwifi_mini", "xiaomi_cr6609", "qihoo_360t6gs"]') || fromJSON(format('["{0}"]', github.event.inputs.target_device)) }}
+        device: ${{ github.event.inputs.target_device == 'all' && fromJSON('["xiaomi_miwifi_mini", "xiaomi_cr6609", "qihoo_360t6gs", "qihoo_360t7"]') || fromJSON(format('["{0}"]', github.event.inputs.target_device)) }}
 
     steps:
     - name: Checkout Repository
@@ -104,6 +105,8 @@ jobs:
             cp -f $GITHUB_WORKSPACE/config/miwifi_mini.config .config
         elif [ "${{ matrix.device }}" = "xiaomi_cr6609" ]; then
             cp -f $GITHUB_WORKSPACE/config/cr6609.config .config
+        elif [ "${{ matrix.device }}" = "qihoo_360t7" ]; then
+            cp -f $GITHUB_WORKSPACE/config/360t7.config .config
         else
             cp -f $GITHUB_WORKSPACE/config/360t6gs.config .config
         fi

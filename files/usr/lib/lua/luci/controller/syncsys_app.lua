@@ -7,3 +7,4 @@ function index()
     root.dependent = false
     root.icon = "brand"
 end
+

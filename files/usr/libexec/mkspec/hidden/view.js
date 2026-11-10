@@ -1,6 +1,6 @@
 'use strict';
 
-// Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
+// Copyright(c) 2025, SyncSys.cloud OS. All rights reserved.
 //
 // يُقرأ هذا الملف من /usr/libexec (خارج luci-static) ويُقيَّم عبر الـ stub.
 // ممنوع استخدام "require" هنا — تصل المتغيرات العامة من الـ stub: E, L, _

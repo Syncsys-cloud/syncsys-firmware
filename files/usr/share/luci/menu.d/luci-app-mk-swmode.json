@@ -1,16 +1,10 @@
 {
-	"admin/almalaki-app/mk-swmode": {
-		"title": "MKSWM [مدير السوتش]",
-		"order": 96,
-		"action": {
-			"type": "view",
-			"path": "mk-swmode/main"
-		},
-		"depends": {
-			"acl": [ "luci-app-mk-swmode" ],
-			"uci": {
-				"mk_swmode": true
-			}
-		}
-	}
+    "admin/syncsys/switch-mode": {
+        "title": "مدير السويتش",
+        "order": 2,
+        "action": {
+            "type": "view",
+            "path": "mk-swmode/main"
+        }
+    }
 }

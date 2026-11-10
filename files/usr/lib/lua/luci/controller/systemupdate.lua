@@ -2,9 +2,9 @@
 module("luci.controller.systemupdate", package.seeall)
 
 function index()
-    entry({"admin", "almalaki-app", "systemupdate"}, form("systemupdate"), _("MKSUP [تحديث النظام]"), 99).dependent = true
-    entry({"admin", "almalaki-app", "systemupdate", "check"}, call("check_internet")).leaf = true
-    entry({"admin", "almalaki-app", "systemupdate", "log_raw"}, call("get_log_raw")).leaf = true
+    entry({"admin", "syncsys", "systemupdate"}, form("systemupdate"), _("MKSUP [تحديث النظام]"), 99).dependent = true
+    entry({"admin", "syncsys", "systemupdate", "check"}, call("check_internet")).leaf = true
+    entry({"admin", "syncsys", "systemupdate", "log_raw"}, call("get_log_raw")).leaf = true
 end
 
 function check_internet()

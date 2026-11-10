@@ -66,14 +66,14 @@ end
 
 function index()
 
-  entry({"admin","almalaki-app","mkntt"}, view("mkntt/mkntt"), _("MKNTT [ أدوات الشبكة ]"), 50).dependent = true
-  entry({"admin","almalaki-app","mkntt","pingstart"},  call("action_ping_start")).leaf = true
-  entry({"admin","almalaki-app","mkntt","pingpoll"},   call("action_ping_poll")).leaf = true
-  entry({"admin","almalaki-app","mkntt","pingstop"},   call("action_ping_stop")).leaf = true
+  entry({"admin","syncsys","mkntt"}, view("mkntt/mkntt"), _("أدوات الشبكة"), 50).dependent = true
+  entry({"admin","syncsys","mkntt","pingstart"},  call("action_ping_start")).leaf = true
+  entry({"admin","syncsys","mkntt","pingpoll"},   call("action_ping_poll")).leaf = true
+  entry({"admin","syncsys","mkntt","pingstop"},   call("action_ping_stop")).leaf = true
 
-  entry({"admin","almalaki-app","mkntt","tracestart"}, call("action_trace_start")).leaf = true
-  entry({"admin","almalaki-app","mkntt","tracepoll"},  call("action_trace_poll")).leaf = true
-  entry({"admin","almalaki-app","mkntt","tracestop"},  call("action_trace_stop")).leaf = true
+  entry({"admin","syncsys","mkntt","tracestart"}, call("action_trace_start")).leaf = true
+  entry({"admin","syncsys","mkntt","tracepoll"},  call("action_trace_poll")).leaf = true
+  entry({"admin","syncsys","mkntt","tracestop"},  call("action_trace_stop")).leaf = true
 end
 
 -- ===== Ping =====

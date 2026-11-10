@@ -44,33 +44,8 @@ if [ -d "$GITHUB_WORKSPACE/files" ]; then
     echo "✅ Branding files copied to firmware overlay"
 fi
 
-# 10. Performance: Default WiFi settings (higher performance)
-cat >> files/etc/uci-defaults/99-syncsys-wifi <<'WIFI_EOF'
-#!/bin/sh
-# SyncSys.cloud WiFi Performance Defaults
-uci batch <<EOF
-set wireless.radio0.country='SA'
-set wireless.radio0.channel='auto'
-set wireless.radio0.htmode='HT40'
-set wireless.radio0.noscan='1'
-set wireless.radio0.disabled='0'
-set wireless.radio1.country='SA'
-set wireless.radio1.channel='auto'
-set wireless.radio1.htmode='VHT80'
-set wireless.radio1.disabled='0'
-
-set wireless.default_radio0.ssid='SyncSys-Cloud'
-set wireless.default_radio0.encryption='psk2'
-set wireless.default_radio0.key='SyncSys2026'
-
-set wireless.default_radio1.ssid='SyncSys-Cloud-5G'
-set wireless.default_radio1.encryption='psk2'
-set wireless.default_radio1.key='SyncSys2026'
-EOF
-uci commit wireless
-wifi reload
-WIFI_EOF
-chmod +x files/etc/uci-defaults/99-syncsys-wifi
+# 10. Safe Defaults handled by 99-syncsys-init
+chmod +x files/etc/uci-defaults/99-syncsys-init 2>/dev/null || true
 
 # 11. Performance: System tuning
 cat >> files/etc/uci-defaults/98-syncsys-performance <<'PERF_EOF'

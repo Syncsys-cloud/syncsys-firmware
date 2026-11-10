@@ -1,18 +1,28 @@
 {
-  "luci-app-mkasc": {
-    "description": "Grant access to AL-Malaki AirScope: scan (C core), apply channel, manage history",
-    "read": {
-      "file": {
-        "/usr/libexec/mkasc/mkasc-core": [ "exec" ],
-        "/usr/libexec/mkasc/mkasc-store.sh": [ "exec" ]
-      }
-    },
-    "write": {
-      "file": {
-        "/usr/libexec/mkasc/mkasc-core": [ "exec" ],
-        "/usr/libexec/mkasc/mkasc-apply.sh": [ "exec" ],
-        "/usr/libexec/mkasc/mkasc-store.sh": [ "exec" ]
-      }
+    "luci-app-mkasc": {
+        "description": "Grant access to AL-Malaki AirScope: scan (C core), apply channel, manage history",
+        "read": {
+            "file": {
+                "/usr/libexec/mkasc/mkasc-core": [
+                    "exec"
+                ],
+                "/usr/libexec/mkasc/mkasc-store.sh": [
+                    "exec"
+                ]
+            }
+        },
+        "write": {
+            "file": {
+                "/usr/libexec/mkasc/mkasc-core": [
+                    "exec"
+                ],
+                "/usr/libexec/mkasc/mkasc-apply.sh": [
+                    "exec"
+                ],
+                "/usr/libexec/mkasc/mkasc-store.sh": [
+                    "exec"
+                ]
+            }
+        }
     }
-  }
 }

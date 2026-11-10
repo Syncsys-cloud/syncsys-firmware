@@ -1,14 +1,18 @@
 {
-	"admin/ats": {
-		"title": "الوقت والتاريخ",
-		"order": 3,
-		"action": {
-			"type": "view",
-			"path": "ats/ats"
-		},
-		"depends": {
-			"acl": [ "luci-app-ats" ],
-			"uci": { "ats": true }
-		}
-	}
+    "admin/ats": {
+        "title": "الوقت والتاريخ",
+        "order": 3,
+        "action": {
+            "type": "view",
+            "path": "ats/ats"
+        },
+        "depends": {
+            "acl": [
+                "luci-app-ats"
+            ],
+            "uci": {
+                "ats": true
+            }
+        }
+    }
 }

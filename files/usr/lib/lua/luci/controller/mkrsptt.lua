@@ -95,7 +95,7 @@ local function luci_login(ip, user, pass)
 end
 
 local function luci_get_token_from_agent_page(ip, cj)
-  local url = "http://" .. ip .. "/cgi-bin/luci/admin/almalaki-app/mkrsptt"
+  local url = "http://" .. ip .. "/cgi-bin/luci/admin/syncsys/mkrsptt"
   local html = curl_exec("curl -sS -L -b " .. util.shellquote(cj) .. " " .. util.shellquote(url))
   local tok = (html or ""):match([["token"%s*:%s*"([a-fA-F0-9]+)"]])
   if not tok or #tok ~= 32 then
@@ -119,7 +119,7 @@ local function remote_start_server(ip, user, pass, port)
   local token, e2 = luci_get_token_from_agent_page(ip, cj)
   if not token then return nil, e2 end
 
-  local out = luci_post_form(ip, cj, "/cgi-bin/luci/admin/almalaki-app/mkrsptt/startc",
+  local out = luci_post_form(ip, cj, "/cgi-bin/luci/admin/syncsys/mkrsptt/startc",
     "token=" .. token .. "&port=" .. tostring(port)
   )
 
@@ -137,7 +137,7 @@ local function remote_stop_server(ip, user, pass)
   local token, e2 = luci_get_token_from_agent_page(ip, cj)
   if not token then return nil, e2 end
 
-  local out = luci_post_form(ip, cj, "/cgi-bin/luci/admin/almalaki-app/mkrsptt/stopc",
+  local out = luci_post_form(ip, cj, "/cgi-bin/luci/admin/syncsys/mkrsptt/stopc",
     "token=" .. token
   )
 
@@ -186,18 +186,18 @@ local function tailc(n)
 end
 --endCL_sec
 function index()
-  entry({"admin","almalaki-app","mkrsptt"}, view("mkrsptt/mkrsptt"), _("MKAST [إختبار السرعة]"), 60).dependent = true
-  entry({"admin","almalaki-app","mkrsptt","start"},  call("action_start")).leaf = true
-  entry({"admin","almalaki-app","mkrsptt","stop"},   call("action_stop")).leaf = true
-  entry({"admin","almalaki-app","mkrsptt","status"}, call("action_status")).leaf = true
-  entry({"admin","almalaki-app","mkrsptt","log"},    call("action_log")).leaf = true
-  entry({"admin","almalaki-app","mkrsptt","poll"},   call("action_poll")).leaf = true
+  entry({"admin","syncsys","mkrsptt"}, view("mkrsptt/mkrsptt"), _("إختبار السرعة"), 60).dependent = true
+  entry({"admin","syncsys","mkrsptt","start"},  call("action_start")).leaf = true
+  entry({"admin","syncsys","mkrsptt","stop"},   call("action_stop")).leaf = true
+  entry({"admin","syncsys","mkrsptt","status"}, call("action_status")).leaf = true
+  entry({"admin","syncsys","mkrsptt","log"},    call("action_log")).leaf = true
+  entry({"admin","syncsys","mkrsptt","poll"},   call("action_poll")).leaf = true
 
   --CL_Section
-  entry({"admin","almalaki-app","mkrsptt","startc"},  call("action_startc")).leaf = true
-  entry({"admin","almalaki-app","mkrsptt","stopc"},   call("action_stopc")).leaf = true
-  entry({"admin","almalaki-app","mkrsptt","statusc"}, call("action_statusc")).leaf = true
-  entry({"admin","almalaki-app","mkrsptt","logc"},    call("action_logc")).leaf = true
+  entry({"admin","syncsys","mkrsptt","startc"},  call("action_startc")).leaf = true
+  entry({"admin","syncsys","mkrsptt","stopc"},   call("action_stopc")).leaf = true
+  entry({"admin","syncsys","mkrsptt","statusc"}, call("action_statusc")).leaf = true
+  entry({"admin","syncsys","mkrsptt","logc"},    call("action_logc")).leaf = true
   --end
 end
 

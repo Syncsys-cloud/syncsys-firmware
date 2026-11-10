@@ -1,15 +1,10 @@
 {
-  "admin/status/mkdash": {
-    "title": "MKDSH [داش بورد]",
-    "order": 0,
-    "action": {
-      "type": "view",
-      "path": "mkdash/overview"
-    },
-    "depends": {
-      "acl": [
-        "luci-app-mkdash"
-      ]
+    "admin/status/dashboard": {
+        "title": "داش بورد",
+        "order": 1,
+        "action": {
+            "type": "view",
+            "path": "mkdash/overview"
+        }
     }
-  }
 }

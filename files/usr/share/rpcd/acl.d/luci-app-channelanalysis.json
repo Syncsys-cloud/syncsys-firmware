@@ -1,12 +1,23 @@
 {
-	"luci-app-channelanalysis": {
-		"description": "Grant UCI access for luci-app-channelanalysis",
-		"read": {
-			"uci": [ "wireless" ],
-			 "ubus": {
-				"file": [ "stat", "list", "read", "exec" ],
-				"iwinfo": [ "info", "freqlist", "scan" ]
-			  },
-		}
-	}
+    "luci-app-channelanalysis": {
+        "description": "Grant UCI access for luci-app-channelanalysis",
+        "read": {
+            "uci": [
+                "wireless"
+            ],
+            "ubus": {
+                "file": [
+                    "stat",
+                    "list",
+                    "read",
+                    "exec"
+                ],
+                "iwinfo": [
+                    "info",
+                    "freqlist",
+                    "scan"
+                ]
+            }
+        }
+    }
 }

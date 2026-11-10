@@ -1,0 +1,10 @@
+{
+    "admin/syncsys/cloud": {
+        "title": "إدارة السيرفر والترخيص",
+        "order": 9,
+        "action": {
+            "type": "view",
+            "path": "syncsys/cloud"
+        }
+    }
+}

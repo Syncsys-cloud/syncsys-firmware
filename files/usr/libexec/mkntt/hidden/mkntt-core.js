@@ -170,7 +170,7 @@ return ({
 	},
 
 	_url(name) {
-		return L.url('admin', 'almalaki-app', 'mkntt', name);
+		return L.url('admin', 'syncsys', 'mkntt', name);
 	},
 
 	_loadTheme() {

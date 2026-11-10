@@ -1,11 +1,10 @@
 {
-  "admin/almalaki-app/mkasc": {
-    "title": "MKASC [محلّل المجال]",
-    "order": 20,
-    "action": {
-      "type": "view",
-      "path": "mkasc/mkasc"
-    },
-    "depends": { "acl": [ "luci-app-mkasc" ] }
-  }
+    "admin/syncsys/access-control": {
+        "title": "محلّل المجال",
+        "order": 3,
+        "action": {
+            "type": "view",
+            "path": "mkasc/mkasc"
+        }
+    }
 }

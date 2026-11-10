@@ -83,7 +83,7 @@ s1.description = [[
 [[
 <script>
 function checkStatus() {
-    fetch("]] .. dispatcher.build_url("admin", "almalaki-app", "systemupdate", "check") .. [[")
+    fetch("]] .. dispatcher.build_url("admin", "syncsys", "systemupdate", "check") .. [[")
         .then(res => res.json())
         .then(data => {
             const el = document.getElementById("netstatus");
@@ -140,7 +140,7 @@ s5.description = [[
 <script>
 
 function updateLog() {
-  fetch("]] .. dispatcher.build_url("admin", "almalaki-app", "systemupdate", "log_raw") .. [[")
+  fetch("]] .. dispatcher.build_url("admin", "syncsys", "systemupdate", "log_raw") .. [[")
     .then(r => r.text())
     .then(text => {
       document.getElementById("fwlog").textContent = text || "NoStart";
@@ -227,14 +227,14 @@ end
 if http.formvalue("check_updates") then
     fs.remove("/tmp/check_done")
     luci.sys.call("/usr/bin/check_update.sh")
-    http.redirect(dispatcher.build_url("admin", "almalaki-app", "systemupdate"))
+    http.redirect(dispatcher.build_url("admin", "syncsys", "systemupdate"))
 end
 
 
 if http.formvalue("run_tr069") then
     fs.remove("/tmp/update_done")
     luci.sys.call("/usr/bin/easycwmp.sh &")
-    http.redirect(dispatcher.build_url("admin", "almalaki-app", "systemupdate"))
+    http.redirect(dispatcher.build_url("admin", "syncsys", "systemupdate"))
 end
 
 return m

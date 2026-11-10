@@ -1,11 +1,15 @@
 {
-	"luci-app-cpulimit": {
-		"description": "Grant UCI access for luci-app-cpulimit",
-		"read": {
-			"uci": [ "cpulimit" ]
-		},
-		"write": {
-			"uci": [ "cpulimit" ]
-		}
-	}
+    "luci-app-cpulimit": {
+        "description": "Grant UCI access for luci-app-cpulimit",
+        "read": {
+            "uci": [
+                "cpulimit"
+            ]
+        },
+        "write": {
+            "uci": [
+                "cpulimit"
+            ]
+        }
+    }
 }

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
+# Copyright(c) 2025, SyncSys.cloud OS. All rights reserved.
 #
 # mkasc-store.sh — إدارة سجل عمليات التحليل المحفوظة
 #   list           سرد العمليات المحفوظة (ملخّص لكل عملية)

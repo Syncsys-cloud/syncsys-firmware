@@ -11,15 +11,15 @@ function index()
 		return
 	end
 
-	entry({"admin", "almalaki-app", "port-isolation", "status_json"}, call("action_status_json")).leaf = true
-	entry({"admin", "almalaki-app", "port-isolation", "insights_json"}, call("action_insights_json")).leaf = true
-	entry({"admin", "almalaki-app", "port-isolation", "presets_json"}, call("action_presets_json")).leaf = true
-	entry({"admin", "almalaki-app", "port-isolation", "preset_apply"}, call("action_preset_apply")).leaf = true
-	entry({"admin", "almalaki-app", "port-isolation", "config_export"}, call("action_config_export")).leaf = true
-	entry({"admin", "almalaki-app", "port-isolation", "config_import"}, call("action_config_import")).leaf = true
-	entry({"admin", "almalaki-app", "port-isolation", "service_action"}, call("action_service_action")).leaf = true
-	entry({"admin", "almalaki-app", "port-isolation", "loopd_json"}, call("action_loopd_json")).leaf = true
-	entry({"admin", "almalaki-app", "port-isolation", "loopd_action"}, call("action_loopd_action")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "status_json"}, call("action_status_json")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "insights_json"}, call("action_insights_json")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "presets_json"}, call("action_presets_json")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "preset_apply"}, call("action_preset_apply")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "config_export"}, call("action_config_export")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "config_import"}, call("action_config_import")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "service_action"}, call("action_service_action")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "loopd_json"}, call("action_loopd_json")).leaf = true
+	entry({"admin", "syncsys", "port-isolation", "loopd_action"}, call("action_loopd_action")).leaf = true
 end
 
 local function split_words(value)

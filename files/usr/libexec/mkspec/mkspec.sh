@@ -1,6 +1,6 @@
 #!/bin/sh
-# Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
-# AL-MALAKI OPEWNWRT TEAM < almalakiopenwrt@gmail.com>
+# Copyright(c) 2025, SyncSys.cloud OS. All rights reserved.
+# SyncSys.cloud Team < support@syncsys.cloud>
 #
 # mkspec.sh — جامع مواصفات الجهاز (JSON)
 #

@@ -1,4 +1,4 @@
-# Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
+# Copyright(c) 2025, SyncSys.cloud OS. All rights reserved.
 #
 # arch/generic.sh — الوحدة الاحتياطية لأي معمارية بلا وحدة مخصصة
 #

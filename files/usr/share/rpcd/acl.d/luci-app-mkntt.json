@@ -1,22 +1,24 @@
 {
-  "luci-app-mkntt": {
-    "description": "LuCI MK Net Tools",
-    "read": {
-      "ubus": {
-        "session": [
-          "access"
-        ]
-      },
-      "file": {
-        "/usr/libexec/mkntt/hidden/mkntt-core.js": [ "read" ]
-      }
-    },
-    "write": {
-      "ubus": {
-        "session": [
-          "access"
-        ]
-      }
+    "luci-app-mkntt": {
+        "description": "LuCI MK Net Tools",
+        "read": {
+            "ubus": {
+                "session": [
+                    "access"
+                ]
+            },
+            "file": {
+                "/usr/libexec/mkntt/hidden/mkntt-core.js": [
+                    "read"
+                ]
+            }
+        },
+        "write": {
+            "ubus": {
+                "session": [
+                    "access"
+                ]
+            }
+        }
     }
-  }
 }

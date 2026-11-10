@@ -1,15 +1,15 @@
 {
-	"admin/power": {
-		"title": "زيادة مدى الواي فاي",
-		"order": 9,
-		"action": {
-			"type": "view",
-			"path": "tx-t6-v122/control"
-		},
-		"depends": {
-			"acl": [
-				"luci-app-tx-t6"
-			]
-		}
-	}
+    "admin/power": {
+        "title": "زيادة مدى الواي فاي",
+        "order": 9,
+        "action": {
+            "type": "view",
+            "path": "tx-t6-v122/control"
+        },
+        "depends": {
+            "acl": [
+                "luci-app-tx-t6"
+            ]
+        }
+    }
 }

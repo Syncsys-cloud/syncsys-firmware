@@ -1,11 +1,13 @@
 {
-	"luci-app-tx-t6": {
-		"description": "Grant access to WiFi TX power control",
-		"read": {},
-		"write": {
-			"file": {
-				"/usr/libexec/tx-t6": [ "exec" ]
-			}
-		}
-	}
+    "luci-app-tx-t6": {
+        "description": "Grant access to WiFi TX power control",
+        "read": {},
+        "write": {
+            "file": {
+                "/usr/libexec/tx-t6": [
+                    "exec"
+                ]
+            }
+        }
+    }
 }

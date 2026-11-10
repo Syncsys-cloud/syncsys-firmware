@@ -1,7 +1,19 @@
 {
-  "luci-app-mkrsptt": {
-    "description": "LuCI iPerf Remote",
-    "read":  { "ubus": { "session": [ "access" ] } },
-    "write": { "ubus": { "session": [ "access" ] } }
-  }
+    "luci-app-mkrsptt": {
+        "description": "LuCI iPerf Remote",
+        "read": {
+            "ubus": {
+                "session": [
+                    "access"
+                ]
+            }
+        },
+        "write": {
+            "ubus": {
+                "session": [
+                    "access"
+                ]
+            }
+        }
+    }
 }

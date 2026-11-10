@@ -1,11 +1,15 @@
 {
-	"luci-app-eoip": {
-		"description": "Grant UCI access for luci-app-eoip",
-		"read": {
-			"uci": [ "eoip" ]
-		},
-		"write": {
-			"uci": [ "eoip" ]
-		}
-	}
+    "luci-app-eoip": {
+        "description": "Grant UCI access for luci-app-eoip",
+        "read": {
+            "uci": [
+                "eoip"
+            ]
+        },
+        "write": {
+            "uci": [
+                "eoip"
+            ]
+        }
+    }
 }

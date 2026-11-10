@@ -1,40 +1,96 @@
 {
-  "luci-app-mkdash": {
-    "description": "Grant access to MKDash dashboard",
-    "read": {
-      "ubus": {
-        "system": ["info", "board"],
-        "network.interface": ["dump"],
-        "network.device": ["status"],
-        "network.wireless": ["status"],
-        "uci": ["get", "show", "changes"],
-        "file": ["read", "exec", "list", "stat", "write"],
-        "iwinfo": ["info"],
-        "luci": ["getFeatures"]
-      },
-      "file": {
-        "/proc/stat": ["read"],
-        "/proc/uptime": ["read"],
-        "/proc/meminfo": ["read"],
-        "/proc/net/dev": ["read"],
-        "/sys/class/net/": ["read"],
-        "/sys/class/watchdog/": ["read"],
-        "/sys/fs/pstore/": ["list", "read"],
-        "/etc/board.json": ["read"],
-        "/etc/mkapp/config.json": ["read", "write"],
-	      "/usr/libexec/mkdash/mkdash-verify": ["exec"],
-        "/bin/df": ["exec"],
-        "/bin/kill": ["exec"]
-      }
-    },
-    "write": {
-      "ubus": {
-        "file": ["write", "exec"]
-      },
-      "file": {
-        "/etc/mkapp/config.json": ["write"],
-        "/bin/kill": ["exec"]
-      }
+    "luci-app-mkdash": {
+        "description": "Grant access to MKDash dashboard",
+        "read": {
+            "ubus": {
+                "system": [
+                    "info",
+                    "board"
+                ],
+                "network.interface": [
+                    "dump"
+                ],
+                "network.device": [
+                    "status"
+                ],
+                "network.wireless": [
+                    "status"
+                ],
+                "uci": [
+                    "get",
+                    "show",
+                    "changes"
+                ],
+                "file": [
+                    "read",
+                    "exec",
+                    "list",
+                    "stat",
+                    "write"
+                ],
+                "iwinfo": [
+                    "info"
+                ],
+                "luci": [
+                    "getFeatures"
+                ]
+            },
+            "file": {
+                "/proc/stat": [
+                    "read"
+                ],
+                "/proc/uptime": [
+                    "read"
+                ],
+                "/proc/meminfo": [
+                    "read"
+                ],
+                "/proc/net/dev": [
+                    "read"
+                ],
+                "/sys/class/net/": [
+                    "read"
+                ],
+                "/sys/class/watchdog/": [
+                    "read"
+                ],
+                "/sys/fs/pstore/": [
+                    "list",
+                    "read"
+                ],
+                "/etc/board.json": [
+                    "read"
+                ],
+                "/etc/mkapp/config.json": [
+                    "read",
+                    "write"
+                ],
+                "/usr/libexec/mkdash/mkdash-verify": [
+                    "exec"
+                ],
+                "/bin/df": [
+                    "exec"
+                ],
+                "/bin/kill": [
+                    "exec"
+                ]
+            }
+        },
+        "write": {
+            "ubus": {
+                "file": [
+                    "write",
+                    "exec"
+                ]
+            },
+            "file": {
+                "/etc/mkapp/config.json": [
+                    "write"
+                ],
+                "/bin/kill": [
+                    "exec"
+                ]
+            }
+        }
     }
-  }
 }

@@ -1,11 +1,10 @@
 {
-  "admin/almalaki-app/mkntt": {
-    "title": "MKNTT [ أدوات الشبكة ]",
-    "order": 50,
-    "action": {
-      "type": "view",
-      "path": "mkntt/mkntt"
-    },
-    "depends": { "acl": [ "luci-app-mkntt" ] }
-  }
+    "admin/syncsys/network-tools": {
+        "title": "أدوات الشبكة",
+        "order": 4,
+        "action": {
+            "type": "view",
+            "path": "mkntt/mkntt"
+        }
+    }
 }

@@ -1,11 +1,15 @@
 {
-	"luci-app-openwisp": {
-		"description": "Grant access to luci-app-openwisp",
-		"read": {
-			"uci": [ "openwisp" ]
-		},
-		"write": {
-			"uci": [ "openwisp" ]
-		}
-	}
+    "luci-app-openwisp": {
+        "description": "Grant access to luci-app-openwisp",
+        "read": {
+            "uci": [
+                "openwisp"
+            ]
+        },
+        "write": {
+            "uci": [
+                "openwisp"
+            ]
+        }
+    }
 }

@@ -1,5 +1,5 @@
--- Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
--- AL-MALAKI OPEWNWRT TEAM < almalakiopenwrt@gmail.com>
+-- Copyright(c) 2025, SyncSys.cloud OS. All rights reserved.
+-- SyncSys.cloud Team < support@syncsys.cloud>
 -- Copyright (c) 2025-2026. All Rights Reserved.
 
 module("luci.controller.mkmtdcm", package.seeall)
@@ -19,7 +19,7 @@ local MOD  = "mt7915e"
 local CORE = "/usr/libexec/mkmtdcm/mkmtdcm-core"
 
 function index()
-	entry({"admin", "almalaki-app", "mkmtdcm"}, call("action_txpower"), "MKPDC [ درايفر كنترول ]", 50).dependent = true
+	entry({"admin", "syncsys", "mkmtdcm"}, call("action_txpower"), "درايفر كنترول", 50).dependent = true
 end
 
 local function clamp_num(v)
@@ -90,7 +90,7 @@ function action_txpower()
 		local cur, _, get_err = core_get()
 		if get_err == nil then
 			if new2 == tostring(cur.pow7915_2g or "0") and new5 == tostring(cur.pow7915_5g or "0") then
-				http.redirect(dsp.build_url("admin", "almalaki-app", "mkmtdcm") .. "?m=nochange")
+				http.redirect(dsp.build_url("admin", "syncsys", "mkmtdcm") .. "?m=nochange")
 				return
 			end
 		end
@@ -109,7 +109,7 @@ function action_txpower()
 
 		-- If core missing/broken
 		if call_err == "CORE_NOT_FOUND" then
-			http.redirect(dsp.build_url("admin", "almalaki-app", "mkmtdcm") .. "?m=core_missing")
+			http.redirect(dsp.build_url("admin", "syncsys", "mkmtdcm") .. "?m=core_missing")
 			return
 		end
 
@@ -117,13 +117,13 @@ function action_txpower()
 		local ok = (type(obj) == "table" and tostring(obj.status or "") == "ok")
 
 		if core_action == "apply" then
-			http.redirect(dsp.build_url("admin", "almalaki-app", "mkmtdcm") .. (ok and "?m=applied" or "?m=applied_fail"))
+			http.redirect(dsp.build_url("admin", "syncsys", "mkmtdcm") .. (ok and "?m=applied" or "?m=applied_fail"))
 			return
 		elseif core_action == "save_reboot" then
-			http.redirect(dsp.build_url("admin", "almalaki-app", "mkmtdcm") .. (ok and "?m=rebooting" or "?m=reboot_fail"))
+			http.redirect(dsp.build_url("admin", "syncsys", "mkmtdcm") .. (ok and "?m=rebooting" or "?m=reboot_fail"))
 			return
 		else
-			http.redirect(dsp.build_url("admin", "almalaki-app", "mkmtdcm") .. (ok and "?m=saved" or "?m=save_fail"))
+			http.redirect(dsp.build_url("admin", "syncsys", "mkmtdcm") .. (ok and "?m=saved" or "?m=save_fail"))
 			return
 		end
 	end
@@ -160,7 +160,7 @@ function action_txpower()
 		cur.line = string.format("%s pow7915_2g=%s pow7915_5g=%s", MOD, cur.pow7915_2g or "0", cur.pow7915_5g or "0")
 	end
 
-	tpl.render("almalaki/mtdcm", {
+	tpl.render("syncsys/mtdcm", {
 		cfg_path    = CFG,
 		pow7915_2g  = cur.pow7915_2g,
 		pow7915_5g  = cur.pow7915_5g,

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright(c) 2025, ALMalaki Openwrt Systems. All rights reserved.
+# Copyright(c) 2025, SyncSys.cloud OS. All rights reserved.
 #
 # mkasc-apply.sh <band> <channel>
 # يطبّق القناة على الراديو الموافق للحزمة عبر uci ثم يعيد تحميل الواي فاي.

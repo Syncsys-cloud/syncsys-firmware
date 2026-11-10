@@ -1,14 +1,18 @@
 {
-  "admin/awed": {
-    "title": "تغير القنوات التلقائي",
-    "order": 4,
-    "action": {
-      "type": "view",
-      "path": "awed/awed"
-    },
-    "depends": {
-      "acl": ["luci-app-awed"],
-      "uci": { "awed": true }
+    "admin/awed": {
+        "title": "تغير القنوات التلقائي",
+        "order": 4,
+        "action": {
+            "type": "view",
+            "path": "awed/awed"
+        },
+        "depends": {
+            "acl": [
+                "luci-app-awed"
+            ],
+            "uci": {
+                "awed": true
+            }
+        }
     }
-  }
 }
